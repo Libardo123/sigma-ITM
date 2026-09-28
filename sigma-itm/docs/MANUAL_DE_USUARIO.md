@@ -1,7 +1,7 @@
-# 📘 SIGMA ITM — Manual de Usuario Oficial
+# 📘 SIGMA ITM — Manual de Usuario Integral y Guía Operativa
 ### Sistema Integral de Gestión de Modalidades de Grado
 **Facultad de Ingenierías — Instituto Tecnológico Metropolitano (ITM)**  
-*Medellín, Colombia | Versión del Sistema: 1.0 (2026)*
+*Medellín, Colombia | Versión del Sistema: 1.0 (2026) | Documentación Oficial*
 
 ---
 
@@ -13,340 +13,567 @@
 
 ## 📑 Tabla de Contenidos
 
-1. [Introducción y Objetivos del Sistema](#1-introducción-y-objetivos-del-sistema)
-2. [Roles de Usuario y Matriz de Acceso](#2-roles-de-usuario-y-matriz-de-acceso)
-3. [Requisitos Técnicos del Sistema](#3-requisitos-técnicos-del-sistema)
-4. [Módulo 1: Acceso, Registro y Seguridad](#4-módulo-1-acceso-registro-y-seguridad)
-   - [4.1 Portal de Bienvenida (Landing Page)](#41-portal-de-bienvenida-landing-page)
-   - [4.2 Inicio de Sesión](#42-inicio-de-sesión)
-   - [4.3 Registro de Cuentas y Activación Administrativa](#43-registro-de-cuentas-y-activación-administrativa)
-5. [Módulo 2: Manual del Estudiante](#5-módulo-2-manual-del-estudiante)
-   - [5.1 Portal del Estudiante](#51-portal-del-estudiante)
-   - [5.2 Radicación de una Nueva Opción de Grado](#52-radicación-de-una-nueva-opción-de-grado)
-   - [5.3 Catálogo de las 10 Modalidades y Documentos Obligatorios](#53-catálogo-de-las-10-modalidades-y-documentos-obligatorios)
-   - [5.4 Monitoreo de Estado y Línea de Tiempo](#54-monitoreo-de-estado-y-línea-de-tiempo)
-   - [5.5 Subsanación de Correcciones Solicitadas](#55-subsanación-de-correcciones-solicitadas)
-   - [5.6 Descarga del Certificado Oficial PDF](#56-descarga-del-certificado-oficial-pdf)
-6. [Módulo 3: Manual del Docente Asesor](#6-módulo-3-manual-del-docente-asesor)
-   - [6.1 Panel de Asesoría Académica](#61-panel-de-asesoría-académica)
-   - [6.2 Supervisión y Avance del Proyecto (`EN_PROCESO`)](#62-supervisión-y-avance-del-proyecto-en_proceso)
-   - [6.3 Emisión de Directrices y Devoluciones por Corrección](#63-emisión-de-directrices-y-devoluciones-por-corrección)
-   - [6.4 Visto Bueno y Programación de Sustentación](#64-visto-bueno-y-programación-de-sustentación)
-7. [Módulo 4: Manual del Comité de Grados y Coordinación](#7-módulo-4-manual-del-comité-de-grados-y-coordinación)
-   - [7.1 Revisión Documental Preliminar (`REVISION_DOCUMENTAL`)](#71-revisión-documental-preliminar-revision_documental)
-   - [7.2 Asignación Formal de Asesor y Directriz Inicial](#72-asignación-formal-de-asesor-y-directriz-inicial)
-   - [7.3 Ratificación de Sustentaciones (`REVISION_COMITE`)](#73-ratificación-de-sustentaciones-revision_comite)
-   - [7.4 Cierre Definitivo y Emisión del Acta de Grado](#74-cierre-definitivo-y-emisión-del-acta-de-grado)
-8. [Módulo 5: Manual del Administrador del Sistema](#8-módulo-5-manual-del-administrador-del-sistema)
-   - [8.1 Gobierno de Cuentas y Aprobación de Usuarios](#81-gobierno-de-cuentas-y-aprobación-de-usuarios)
-   - [8.2 Dashboard de Analítica y Métricas Institucionales](#82-dashboard-de-analítica-y-métricas-institucionales)
-9. [Ciclo de Vida del Trámite y Máquina de Estados](#9-ciclo-de-vida-del-trámite-y-máquina-de-estados)
-10. [Preguntas Frecuentes y Solución de Problemas (FAQ)](#10-preguntas-frecuentes-y-solución-de-problemas-faq)
+- [1. Introducción y Marco Normativo](#1-introducción-y-marco-normativo)
+  - [1.1 Propósito y Alcance](#11-propósito-y-alcance)
+  - [1.2 Marco Normativo Institucional](#12-marco-normativo-institucional)
+  - [1.3 Requisitos Técnicos y Entorno de Acceso](#13-requisitos-técnicos-y-entorno-de-acceso)
+- [2. Arquitectura de Seguridad y Roles (RBAC)](#2-arquitectura-de-seguridad-y-roles-rbac)
+  - [2.1 Matriz de Competencias y Privilegios](#21-matriz-de-competencias-y-privilegios)
+  - [2.2 Políticas de Sesión y Tokens JWT](#22-políticas-de-sesión-y-tokens-jwt)
+  - [2.3 Reglas de Validación de Archivos (Magic Bytes)](#23-reglas-de-validación-de-archivos-magic-bytes)
+- [3. Módulo de Autenticación y Registro](#3-módulo-de-autenticación-y-registro)
+  - [3.1 Portal de Bienvenida (Landing Page)](#31-portal-de-bienvenida-landing-page)
+  - [3.2 Formulario de Registro Multietapa](#32-formulario-de-registro-multietapa)
+  - [3.3 Flujo de Activación Administrativa de Cuentas](#33-flujo-de-activación-administrativa-de-cuentas)
+  - [3.4 Inicio de Sesión y Manejo de Errores](#34-inicio-de-sesión-y-manejo-de-errores)
+- [4. Módulo del Estudiante: Radicación y Seguimiento](#4-módulo-del-estudiante-radicación-y-seguimiento)
+  - [4.1 Estructura del Panel del Estudiante](#41-estructura-del-panel-del-estudiante)
+  - [4.2 Guía de Radicación: Las 10 Modalidades de Grado](#42-guía-de-radicación-las-10-modalidades-de-grado)
+  - [4.3 Carga y Gestión de Documentos Anexos](#43-carga-y-gestión-de-documentos-anexos)
+  - [4.4 Interpretación del Stepper / Línea de Tiempo](#44-interpretación-del-stepper--línea-de-tiempo)
+  - [4.5 Protocolo de Subsanación de Correcciones](#45-protocolo-de-subsanación-de-correcciones)
+  - [4.6 Descarga del Certificado Oficial de Finalización (PDF)](#46-descarga-del-certificado-oficial-de-finalización-pdf)
+- [5. Módulo del Docente Asesor: Supervisión y Aval](#5-módulo-del-docente-asesor-supervisión-y-aval)
+  - [5.1 Acceso y Filtrado de Estudiantes Asignados](#51-acceso-y-filtrado-de-estudiantes-asignados)
+  - [5.2 Gestión de la Etapa de Desarrollo (`EN_PROCESO`)](#52-gestión-de-la-etapa-de-desarrollo-en_proceso)
+  - [5.3 Devolución Formativa vs. Visto Bueno](#53-devolución-formativa-vs-visto-bueno)
+  - [5.4 Programación y Calificación de la Sustentación](#54-programación-y-calificación-de-la-sustentación)
+- [6. Módulo del Comité de Grados: Dictamen y Gobierno](#6-módulo-del-comité-de-grados-dictamen-y-gobierno)
+  - [6.1 Bandeja de Entrada General y Filtros de Búsqueda](#61-bandeja-de-entrada-general-y-filtros-de-búsqueda)
+  - [6.2 Revisión Documental y Requisitos Mínimos](#62-revisión-documental-y-requisitos-mínimos)
+  - [6.3 Asignación de Docente Asesor y Emisión de Directriz](#63-asignación-de-docente-asesor-y-emisión-de-directriz)
+  - [6.4 Ratificación de Sustentaciones y Cierre de Expediente](#64-ratificación-de-sustentaciones-y-cierre-de-expediente)
+  - [6.5 Causales de Rechazo y Procedimiento Notificatorio](#65-causales-de-rechazo-y-procedimiento-notificatorio)
+- [7. Módulo del Administrador: Control y Analítica](#7-módulo-del-administrador-control-y-analítica)
+  - [7.1 Gestión de Cuentas Pendientes](#71-gestión-de-cuentas-pendientes)
+  - [7.2 Tablero Analítico Institucional (Dashboard)](#72-tablero-analítico-institucional-dashboard)
+  - [7.3 Auditoría Forense (`HistorialEstado`)](#73-auditoría-forense-historialestado)
+- [8. Máquina de Estados y Matriz de Transiciones](#8-máquina-de-estados-y-matriz-de-transiciones)
+- [9. Casos Prácticos de Extremo a Extremo (Walkthrough)](#9-casos-prácticos-de-extremo-a-extremo-walkthrough)
+  - [9.1 Caso A: Flujo Regular Aprobado (Trabajo de Grado)](#91-caso-a-flujo-regular-aprobado-trabajo-de-grado)
+  - [9.2 Caso B: Flujo con Corrección y Subsanación](#92-caso-b-flujo-con-corrección-y-subsanación)
+- [10. Preguntas Frecuentes y Solución de Problemas (Troubleshooting)](#10-preguntas-frecuentes-y-solución-de-problemas-troubleshooting)
 
 ---
 
-## 1. Introducción y Objetivos del Sistema
+## 1. Introducción y Marco Normativo
 
-**SIGMA ITM** (Sistema Integral de Gestión de Modalidades de Grado) es la plataforma tecnológica institucional diseñada para la Facultad de Ingenierías del ITM con el fin de digitalizar, organizar y auditar en tiempo real todo el flujo de trabajo asociado a los requisitos de grado.
+### 1.1 Propósito y Alcance
 
-### Objetivos Principales:
-- **Centralización Total:** Sustituir cadenas de correos informales y formularios impresos por un expediente digital único con trazabilidad total.
-- **Transparencia para el Estudiante:** Permitir conocer en qué fase exacta se encuentra su solicitud, quién es su evaluador y qué observaciones existen.
-- **Rigor Académico y Calidad:** Validar automáticamente que no se puedan avanzar etapas sin cumplir con la documentación legal y técnica exigida por el reglamento del ITM.
-- **Automatización Certificada:** Generar actas y certificados de culminación en PDF con código hash de verificación forense.
+El **Sistema Integral de Gestión de Modalidades de Grado (SIGMA ITM)** es la plataforma oficial de la Facultad de Ingenierías del ITM diseñada para centralizar, digitalizar, controlar y auditar todo el ciclo de vida de los trabajos de grado y opciones formativas de culminación académica.
 
----
-
-## 2. Roles de Usuario y Matriz de Acceso
-
-El sistema implementa un estricto modelo de **Control de Acceso Basado en Roles (RBAC)**:
-
-| Rol | Actor Institucional | Responsabilidades Principales |
-| :--- | :--- | :--- |
-| 👨‍🎓 **ESTUDIANTE** | Alumno matriculado en pregrado/posgrado | Radicar proyecto, subir anexos, subsanar observaciones, descargar certificado oficial. |
-| 👨‍🏫 **ASESOR** | Docente asesor nombrado | Guiar el desarrollo técnico en `EN_PROCESO`, solicitar ajustes, otorgar aval y calificar sustentación. |
-| 🏛️ **COMITE** | Comité de Trabajos de Grado / Coordinación | Revisar documentos iniciales, aprobar trámite, asignar asesor con directriz, ratificar acta final. |
-| ⚡ **ADMIN** | Dirección de Departamento / Administrador TI | Activar usuarios nuevos, parametrizar modalidades, consultar analítica global y auditar el sistema. |
+El sistema erradica de forma definitiva:
+- La dispersión de documentos en correos personales de coordinadores o docentes.
+- La incertidumbre del estudiante sobre el estado de su radicación.
+- La falta de registros formales sobre observaciones, devoluciones y versiones de archivos.
+- Las demoras en la emisión de paz y salvos y certificados de grado.
 
 ---
 
-## 3. Requisitos Técnicos del Sistema
+### 1.2 Marco Normativo Institucional
 
-- **Navegadores Recomendados:** Google Chrome (v100+), Mozilla Firefox (v100+), Microsoft Edge (v100+), Safari (v15+).
-- **Resolución Óptima:** 1366 x 768 píxeles en adelante (diseño 100% responsivo para tabletas y dispositivos móviles).
-- **Formatos de Documentos Permitidos:** Archivos en formato `.pdf`, `.docx` o comprimidos `.zip`.
-- **Límite de Tamaño:** Máximo 10 MB por archivo adjunto.
-- **Seguridad de Archivos:** El sistema realiza verificación binaria (*magic bytes*); cualquier archivo renombrado maliciosamente (ej. un ejecutable `.exe` renombrado a `.pdf`) será bloqueado por el servidor.
+SIGMA ITM opera bajo los lineamientos del **Reglamento Estudiantil de la Facultad de Ingenierías del ITM**, rigiéndose por principios de:
+1. **Unicidad del Trámite:** Ningún estudiante puede tener más de una postulación activa en el sistema.
+2. **Inmutabilidad del Historial:** Toda acción (revisión, corrección, asignación o cambio de estado) genera un registro inalterable en base de datos.
+3. **Validez Documental:** La documentación aportada debe corresponder a los formatos institucionales aprobados y no tener tachaduras o inconsistencias en los sellos y firmas.
 
 ---
 
-## 4. Módulo 1: Acceso, Registro y Seguridad
+### 1.3 Requisitos Técnicos y Entorno de Acceso
 
-### 4.1 Portal de Bienvenida (Landing Page)
+| Parámetro | Requerimiento Técnico |
+| :--- | :--- |
+| **Navegadores Soportados** | Google Chrome v100+, Mozilla Firefox v100+, Microsoft Edge v100+, Safari v15+. |
+| **Resolución de Pantalla** | Mínima: 1280 × 720 px. Recomendada: 1920 × 1080 px (Totalmente responsivo en tablets y laptops). |
+| **Conectividad** | Conexión a Internet o Red Institucional ITM con acceso a puertos HTTP (5173 / 80) y API (8000). |
+| **Tipos de Archivos Aceptados** | `.pdf` (Portable Document Format), `.docx` (Microsoft Word), `.zip` (archivos comprimidos). |
+| **Tamaño Máximo por Archivo** | 10.0 MB (MegaBytes). |
 
-Al ingresar a la dirección principal del sistema (`http://localhost:5173/` en desarrollo o el dominio institucional configurado), el usuario visualiza la portada con información clara de las 10 modalidades disponibles y accesos directos:
+---
+
+## 2. Arquitectura de Seguridad y Roles (RBAC)
+
+### 2.1 Matriz de Competencias y Privilegios
+
+SIGMA ITM aplica un esquema estricto de **Control de Acceso Basado en Roles (RBAC)** tanto en la interfaz React como en la API Django REST:
+
+```
+[ESTUDIANTE]  --> Radica, Consulta su trámite, Subsana, Descarga Certificado.
+[ASESOR]      --> Supervisa EN_PROCESO, Emite Directrices, Califica SUSTENTACION.
+[COMITE]      --> Revisa POSTULACION / REVISION_DOCUMENTAL, Asigna Asesor, Ratifica REVISION_COMITE.
+[ADMIN]       --> Activa Cuentas, Parametriza Modalidades, Visualiza Métricas y Audita Todo.
+```
+
+| Funcionalidad / Acción | Estudiante | Docente Asesor | Comité de Grados | Administrador |
+| :--- | :---: | :---: | :---: | :---: |
+| **Crear cuenta de usuario** | Público | Público | ❌ (Solo Admin) | Admin |
+| **Radicar nueva postulación** | ✅ (Propia) | ❌ | ❌ | ✅ |
+| **Consultar expediente propio** | ✅ | ❌ | ❌ | ✅ |
+| **Subir archivos anexos** | ✅ | ❌ | ❌ | ✅ |
+| **Subsanar observaciones** | ✅ | ❌ | ❌ | ❌ |
+| **Descargar certificado oficial PDF** | ✅ (Al finalizar) | ✅ | ✅ | ✅ |
+| **Iniciar Revisión Documental** | ❌ | ❌ | ✅ | ✅ |
+| **Aprobar / Devolver requisitos documentales** | ❌ | ❌ | ✅ | ✅ |
+| **Asignar docente asesor con directriz** | ❌ | ❌ | ✅ | ✅ |
+| **Gestionar etapa `EN_PROCESO`** | ❌ | ✅ (Solo asignado) | ❌ | ✅ |
+| **Programar y calificar `SUSTENTACION`** | ❌ | ✅ (Solo asignado) | ❌ | ✅ |
+| **Ratificar acta en `REVISION_COMITE`** | ❌ | ❌ | ✅ | ✅ |
+| **Aprobar / Activar cuentas de usuario** | ❌ | ❌ | ❌ | ✅ |
+| **Acceso a Dashboard de Analítica Global** | ❌ | ✅ (Solo asignados) | ✅ (Completo) | ✅ (Completo) |
+
+---
+
+### 2.2 Políticas de Sesión y Tokens JWT
+
+- **Access Token:** Vida útil de **20 minutos**. Se transmite en el header `Authorization: Bearer <token>`.
+- **Refresh Token:** Vida útil de **7 días**. Permite la renovación silenciosa en segundo plano mediante interceptores de Axios.
+- **Lista Negra (`Blacklist`):** Al cerrar sesión o renovar un token expirado, el token previo queda invalidado inmediatamente, previniendo ataques de reutilización.
+- **Protección contra Fuerza Bruta:** El endpoint `/api/token/` bloquea temporalmente las solicitudes que superen los 5 intentos fallidos consecutivos por dirección IP.
+
+---
+
+### 2.3 Reglas de Validación de Archivos (Magic Bytes)
+
+> [!CAUTION]
+> **Inspección de Firmas Binarias:** El sistema **no confía** en la extensión del archivo (`.pdf` o `.docx`). Cada archivo subido pasa por una verificación de encabezados binarios mediante la librería `python-magic`. Si un usuario intenta subir un archivo ejecutable (`.exe`, `.bat`, `.sh`) o un script malicioso renombrado a `.pdf`, el servidor rechazará la subida arrojando un error `400 Bad Request`.
+
+---
+
+## 3. Módulo de Autenticación y Registro
+
+### 3.1 Portal de Bienvenida (Landing Page)
+
+Al abrir la dirección del sistema, se presenta el portal de bienvenida institucional:
 
 <p align="center">
   <img src="img/screenshot_landing.png" alt="Portal de Bienvenida SIGMA ITM" width="90%" />
 </p>
 
-1. **Botón "Iniciar Sesión":** Conduce al formulario de autenticación con credenciales institucionales.
-2. **Botón "Registrarse":** Permite a nuevos usuarios solicitar la creación de su cuenta.
-3. **Catálogo Informativo:** Presenta los requisitos y normativas de cada una de las 10 modalidades vigentes.
+#### Elementos del Portal:
+1. **Barra de Navegación Superior:**
+   - Logotipo oficial del Instituto Tecnológico Metropolitano (ITM).
+   - Enlace directo a la guía de modalidades de grado.
+   - Botón **"Iniciar Sesión"** (para usuarios ya registrados).
+   - Botón **"Registrarse"** (para nuevos integrantes).
+2. **Banner Principal (Hero Section):**
+   - Título formal y resumen de la misión de la plataforma.
+   - Indicador de estado del periodo académico actual.
+3. **Catálogo Resumido de Modalidades:**
+   - Tarjetas informativas con los requisitos básicos de las 10 opciones de grado.
 
 ---
 
-### 4.2 Inicio de Sesión
+### 3.2 Formulario de Registro Multietapa
 
-Para ingresar al sistema, haga clic en el botón superior **"Iniciar Sesión"** o navegue a `/login`:
+Para registrarse por primera vez, haga clic en el botón **"Registrarse"** o diríjase a `/crear-usuario`:
+
+#### Paso 1: Datos Personales e Identidad Académica
+- **Nombre:** Nombre(s) tal como aparecen en el documento de identidad.
+- **Apellido:** Apellidos completos.
+- **Correo Electrónico:** Correo institucional `@itm.edu.co` (requerido para validación y notificaciones).
+- **Cédula de Ciudadanía:** Número de documento sin puntos ni comas.
+- **Programa Académico:** Menú desplegable con las carreras oficiales:
+  - *Ingeniería de Sistemas*
+  - *Ingeniería Electrónica*
+  - *Ingeniería Biomédica*
+  - *Tecnología en Sistemas de Información*
+  - *Tecnología en Electrónica*
+  - *Administración Tecnológica*
+- **Rol Solicitado:** Selección entre **Estudiante** (🎓) o **Docente Asesor** (👨‍🏫).
+
+#### Paso 2: Credenciales de Acceso
+- **Nombre de Usuario:** Identificador único institucional (ej. `jorge.perez`).
+- **Contraseña:** Mínimo 8 caracteres, con al menos una mayúscula, un número y un carácter especial.
+- **Indicador de Fortaleza:** Barra visual interactiva que evalúa la robustez de la contraseña (*Muy débil, Débil, Regular, Buena, Fuerte, Excelente*).
+- **Confirmación de Contraseña:** Verificación de coincidencia exacta.
+
+---
+
+### 3.3 Flujo de Activación Administrativa de Cuentas
+
+> [!IMPORTANT]
+> **Aprobación Obligatoria:** Una vez enviado el formulario de registro, la cuenta **NO se activa de inmediato**.  
+> Por motivos de control y seguridad institucional, el usuario verá un mensaje confirmando que su solicitud quedó en estado `Pendiente de Aprobación`. El Administrador del ITM debe verificar la matrícula activa del estudiante o la vinculación del docente antes de habilitar el acceso.
+
+---
+
+### 3.4 Inicio de Sesión y Manejo de Errores
 
 <p align="center">
   <img src="img/screenshot_login.png" alt="Formulario de Inicio de Sesión" width="70%" />
 </p>
 
-#### Pasos para Autenticarse:
-1. Ingrese su **Nombre de Usuario** institucional (ej. `estudiante1`, `asesor1`, `comite`).
+1. Ingrese su **Nombre de Usuario**.
 2. Digite su **Contraseña**.
 3. Haga clic en **"Iniciar Sesión"**.
-4. El sistema validará sus credenciales mediante tokens JWT con expiración automática de 20 minutos para proteger su cuenta.
 
-> [!NOTE]
-> El endpoint de autenticación cuenta con un limitador de intentos (*rate limiting*). Si introduce contraseñas incorrectas reiteradamente, su dirección IP será pausada temporalmente como medida de seguridad anti-fuerza bruta.
-
----
-
-### 4.3 Registro de Cuentas y Activación Administrativa
-
-Si es un estudiante o docente nuevo en la plataforma, seleccione la opción **"¿No tienes cuenta? Regístrate aquí"**:
-
-1. Complete el formulario con:
-   - Nombre de usuario y correo institucional (`@itm.edu.co`).
-   - Cédula de ciudadanía o documento de identidad.
-   - Programa académico (ej. *Ingeniería de Sistemas*, *Ingeniería Electrónica*).
-   - Rol solicitado (*Estudiante* o *Docente Asesor*).
-   - Contraseña segura.
-2. Haga clic en **"Crear Cuenta"**.
-3. **Estado Pendiente:** Por políticas de seguridad institucional, la cuenta quedará en estado inactivo (`is_active = False`) hasta que un Administrador del ITM valide su vinculación y active el acceso.
+#### Posibles Respuestas del Sistema:
+- ✅ **Acceso Concedido:** Redirección automática al panel correspondiente a su rol (`/estudiante`, `/aprobacion` o `/dashboard`).
+- ❌ **"No active account found with the given credentials":** Usuario o contraseña incorrectos.
+- ⚠️ **"Tu cuenta está pendiente de aprobación por el Administrador":** El registro fue exitoso pero el administrador aún no ha verificado la cuenta.
+- 🛑 **"Demasiados intentos fallidos. Intente nuevamente en unos minutos":** Bloqueo por activación de la política de rate limiting.
 
 ---
 
-## 5. Módulo 2: Manual del Estudiante
+## 4. Módulo del Estudiante: Radicación y Seguimiento
 
-### 5.1 Portal del Estudiante
+### 4.1 Estructura del Panel del Estudiante
 
-Una vez autenticado con rol de estudiante, el sistema lo redirige a su panel de control personalizado:
+Al iniciar sesión como estudiante, accederá a su panel operativo:
 
 <p align="center">
   <img src="img/screenshot_panel_estudiante.png" alt="Panel del Estudiante SIGMA ITM" width="90%" />
 </p>
 
-En esta vista, el estudiante puede:
-- Ver el estado actual de su postulación mediante una insignia dinámica con código de color.
-- Consultar los datos de su asesor asignado y las directrices emitidas.
-- Revisar las fechas y el lugar programados para la sustentación pública.
-- Consultar la bitácora completa de observaciones y revisiones históricas.
-- Descargar su Certificado Oficial de Paz y Salvo una vez concluido el proceso.
-
----
-
-### 5.2 Radicación de una Nueva Opción de Grado
-
-Si aún no cuenta con una postulación activa:
-
-1. Haga clic en el botón **"Radicar Nueva Postulación"**.
-2. Escriba el **Título del Proyecto de Grado** (debe ser claro, preciso y alineado con las líneas de investigación de la facultad).
-3. Seleccione la **Modalidad de Grado** deseada en el menú desplegable.
-4. Adjunte los documentos obligatorios requeridos para esa modalidad específica.
-5. Presione **"Radicar Trámite"**. El sistema verificará los archivos e iniciará el proceso en estado `POSTULACION`.
-
----
-
-### 5.3 Catálogo de las 10 Modalidades y Documentos Obligatorios
-
-Antes de radicar, verifique que cuenta con los documentos requeridos:
-
-| # | Modalidad de Grado | Código | Documentos Obligatorios a Adjuntar |
-| :-: | :--- | :--- | :--- |
-| **1** | **Trabajo de Grado** | `TRABAJO_GRADO` | Anteproyecto formal de grado + Certificado de paz y salvo académico. |
-| **2** | **Prácticas Profesionales** | `PRACTICAS_PROFESIONALES` | Carta de aceptación de la empresa + Convenio/Afiliación ARL + Plan de labores. |
-| **3** | **Pasantía de Investigación** | `PASANTIA` | Carta de aceptación del centro o institución receptora + Plan de pasantía. |
-| **4** | **Emprendimiento** | `EMPRENDIMIENTO` | Plan de negocio / Modelo Canvas + Constancia de Parque E o Centro de Emprendimiento. |
-| **5** | **Producto en Laboratorio** | `PRODUCTO_LABORATORIO` | Aval de la Jefatura de Laboratorios ITM + Ficha técnica del prototipo. |
-| **6** | **Producto de Investigación** | `PRODUCTO_INVESTIGACION` | Constancia del Grupo de Investigación (MinCiencias) + Artículo o ponencia. |
-| **7** | **Reconocimiento Laboral** | `RECONOCIMIENTO_LABORAL` | Certificación laboral (mínimo 1 año de experiencia afín) + Memoria técnica. |
-| **8** | **Certificación Internacional** | `CERTIFICACION` | Voucher o certificado oficial de industria + Ficha técnica del examen. |
-| **9** | **Cursos de Posgrado** | `CURSOS_POSGRADO` | Constancia de matrícula formal en posgrado + Certificado de calificaciones. |
-| **10** | **Ingeniería para la Gente** | `INGENIERIA_GENTE` | Carta de la comunidad receptora + Diagnóstico comunitario + Plan de intervención. |
-
----
-
-### 5.4 Monitoreo de Estado y Línea de Tiempo
-
-La línea de tiempo visual ubicada en el panel muestra de forma interactiva el progreso cronológico del proyecto:
-
-1. 🔵 **POSTULACIÓN:** Solicitud radicada por el estudiante.
-2. 🟡 **REVISIÓN DOCUMENTAL:** Comité y Coordinación verifican anexos y validez.
-3. 🟢 **APROBACIÓN:** Requisitos aprobados; pendiente asignación de asesor.
-4. 🟣 **EN PROCESO:** Desarrollo del trabajo bajo supervisión docente continua.
-5. 🟠 **SUSTENTACIÓN:** Defensa pública con jurados, fecha y aula asignadas.
-6. 🔵 **REVISIÓN COMITÉ:** Ratificación formal de la calificación de sustentación.
-7. 🏆 **FINALIZADO:** Trámite culminado con éxito y generación del acta oficial.
-
----
-
-### 5.5 Subsanación de Correcciones Solicitadas
-
-> [!WARNING]
-> **Bloqueo por Corrección:** Si el Comité o su Asesor detectan inconsistencias, marcarán la postulación con `requiere_correccion = True`. Mientras este estado esté activo, el trámite queda en pausa y no podrá avanzar de etapa hasta que subsane.
-
-#### ¿Cómo responder a una corrección?
-1. Ingrese a su portal de estudiante. Verá una alerta destacada en color amarillo/ámbar con las **Observaciones del Evaluador**.
-2. Prepare el documento corregido en su computador.
-3. En la sección **"Subsanar Observación"**:
-   - Escriba una explicación detallada de las modificaciones efectuadas.
-   - Adjunte el nuevo archivo corregido (PDF o DOCX).
-4. Haga clic en **"Enviar Subsanación"**.
-5. El sistema notificará al evaluador, desactivará la bandera de bloqueo y reanudará el trámite para su revisión.
-
----
-
-### 5.6 Descarga del Certificado Oficial PDF
-
-Una vez que el Comité aprueba la sustentación y el trámite alcanza el estado **`FINALIZADO`**:
-1. Aparecerá en su panel el botón verde **"Descargar Certificado Oficial (PDF)"**.
-2. Al hacer clic, el servidor generará dinámicamente un documento oficial institucional emitido por la Facultad de Ingenierías.
-3. Este documento incluye:
-   - Datos completos del estudiante y programa académico.
+El panel se compone de:
+1. **Encabezado Informativo:**
+   - Nombre completo del estudiante, cédula y programa académico.
+   - Insignia con el estado actual del trámite (`POSTULACION`, `EN_PROCESO`, `SUSTENTACION`, etc.).
+2. **Línea de Tiempo Interactiva (Stepper):**
+   - Barra de progreso cronológica de 7 etapas que se ilumina a medida que el proceso avanza.
+3. **Cuerpo del Expediente:**
    - Título oficial del proyecto y modalidad convalidada.
-   - Nombres del docente asesor y evaluadores.
-   - Código único de verificación criptográfica (Hash SHA-256).
+   - Ficha del Docente Asesor asignado (nombre, correo y directriz inicial).
+   - Datos de la sustentación (fecha, hora y salón cuando esté programada).
+   - Zona de carga de documentos y expedientes adjuntos.
+   - Bitácora de observaciones y revisiones históricas.
 
 ---
 
-## 6. Módulo 3: Manual del Docente Asesor
+### 4.2 Guía de Radicación: Las 10 Modalidades de Grado
 
-### 6.1 Panel de Asesoría Académica
+Si el estudiante no tiene ningún trámite activo, verá el botón azul **"Radicar Nueva Postulación"**. Al presionarlo se despliega el formulario integral:
 
-El docente asesor ingresa con sus credenciales institucionales y es dirigido a la vista de evaluación:
+#### Campos Generales Obligatorios:
+- **Título del Proyecto:** Título definitivo de la propuesta (máximo 250 caracteres).
+- **Modalidad:** Selección entre las 10 alternativas vigentes.
+
+#### Campos Específicos según la Modalidad Seleccionada:
+
+| Modalidad | Campos Específicos Requeridos | Documentos que debe adjuntar |
+| :--- | :--- | :--- |
+| **1. Trabajo de Grado** (`TRABAJO_GRADO`) | Línea de investigación, planteamiento del problema, objetivos generales y específicos. | Anteproyecto formal firmado + Paz y salvo académico. |
+| **2. Prácticas Profesionales** (`PRACTICAS_PROFESIONALES`) | Razón social de la empresa, NIT, nombre del jefe inmediato, teléfono, cargo a desempeñar. | Carta de aceptación empresarial + Certificado afiliación ARL + Plan de práctica. |
+| **3. Pasantía de Investigación** (`PASANTIA`) | Institución o laboratorio receptor, investigador principal anfitrión, país/ciudad, cronograma. | Carta de invitación oficial + Convenio interinstitucional + Plan de pasantía. |
+| **4. Emprendimiento** (`EMPRENDIMIENTO`) | Nombre de la iniciativa/empresa, sector económico, estado del modelo Canvas, incubadora. | Plan de negocio formal + Aval de Parque E o Centro de Emprendimiento ITM. |
+| **5. Producto en Laboratorio** (`PRODUCTO_LABORATORIO`) | Laboratorio sede del ITM, nombre del prototipo, ficha técnica, insumos requeridos. | Aval firmado por Jefatura de Laboratorios + Memoria técnica del prototipo. |
+| **6. Producto de Investigación** (`PRODUCTO_INVESTIGACION`) | Grupo de investigación ITM, código MinCiencias, título del paper/patente, revista o congreso. | Constancia emitida por el Líder del Grupo MinCiencias + Borrador del artículo. |
+| **7. Reconocimiento Laboral** (`RECONOCIMIENTO_LABORAL`) | Empresa actual, tiempo laborado (mínimo 1 año afín), funciones desempeñadas, cargo. | Certificado laboral reciente con funciones + Memoria técnica de labores ejecutadas. |
+| **8. Certificación Internacional** (`CERTIFICACION`) | Casa certificadora (AWS, Cisco, Microsoft, etc.), código del examen, vigencia, puntaje. | Voucher o certificado digital oficial + Ficha técnica de competencias evaluadas. |
+| **9. Cursos de Posgrado** (`CURSOS_POSGRADO`) | Maestría o especialización ITM receptora, asignaturas matriculadas, créditos acumulados. | Constancia de matrícula de posgrado + Certificado de calificaciones expedido. |
+| **10. Ingeniería para la Gente** (`INGENIERIA_GENTE`) | Comunidad u organización social beneficiaria, diagnóstico comunitario, población atendida. | Carta de aval comunitario + Diagnóstico del problema + Plan de intervención social. |
+
+---
+
+### 4.3 Carga y Gestión de Documentos Anexos
+
+Dentro del expediente, el estudiante dispone del módulo **"Documentos del Proyecto"**:
+
+1. Ingrese el **Nombre Descriptivo** del documento (ej. `Anteproyecto_Final_V2`, `Certificado_ARL`).
+2. Haga clic en **"Examinar..."** y elija el archivo de su computador.
+3. El sistema verificará de inmediato en el navegador que el archivo sea menor a 10 MB y tenga extensión válida.
+4. Presione **"Subir Archivo"**.
+5. El documento aparecerá listado en la tabla de anexos con su fecha de subida, tamaño en KB/MB y un botón para **Visualizar / Descargar**.
+
+---
+
+### 4.4 Interpretación del Stepper / Línea de Tiempo
+
+La línea de tiempo visual comunica claramente el avance y las responsabilidades del trámite:
+
+```
+[1. Radicación] -> [2. Revisión Doc.] -> [3. Aprobación] -> [4. En Proceso] -> [5. Sustentación] -> [6. Rev. Comité] -> [7. Finalizado]
+     (Estudiante)         (Comité)            (Comité)          (Asesor)           (Asesor)           (Comité)          (Graduación)
+```
+
+- **Círculo Azul / Verde:** Etapas ya cursadas y aprobadas.
+- **Círculo Pulsante con Borde Resaltado:** Etapa actual activa.
+- **Círculo Gris:** Etapas futuras aún no habilitadas.
+- **Rojo:** Trámite rechazado definitivamente.
+
+---
+
+### 4.5 Protocolo de Subsanación de Correcciones
+
+Cuando el Comité o el Asesor devuelven el trámite para ajustes:
+
+1. El estado del expediente mostrará un aviso destacado en color ámbar:  
+   **"Trámite Pausado: Requiere Corrección"**.
+2. Debajo aparecerá el cuadro **Observación del Evaluador**, donde se detalla con exactitud qué debe ser corregido (ej. *"Ajustar el cronograma del anteproyecto y adjuntar el paz y salvo actualizado"*).
+3. **Formulario de Subsanación:**
+   - Escriba en el campo de texto el **Mensaje de Subsanación**, explicando punto por punto las correcciones efectuadas.
+   - Adjunte en el campo de archivo el **Documento Corregido**.
+4. Presione **"Enviar Subsanación"**.
+5. Al enviar, la bandera `requiere_correccion` se desactiva, el evaluador recibe la notificación y el trámite se descongela para que continúe su curso.
+
+---
+
+### 4.6 Descarga del Certificado Oficial de Finalización (PDF)
+
+Una vez que el trámite alcanza el estado **`FINALIZADO`**:
+1. Se habilitará el botón verde institucional **"Descargar Certificado Oficial (PDF)"**.
+2. El documento se descarga al instante con el siguiente contenido oficial:
+   - Membrete y escudo oficial del ITM.
+   - Nombre completo y documento del graduando.
+   - Modalidad de grado convalidada y título del proyecto.
+   - Fecha de sustentación y calificación obtenida.
+   - Número de Acta de Grado y registro del Comité.
+   - **Firma digital e identificador criptográfico Hash SHA-256** para verificación de autenticidad en secretaría.
+
+---
+
+## 5. Módulo del Docente Asesor: Supervisión y Aval
+
+### 5.1 Acceso y Filtrado de Estudiantes Asignados
+
+Al ingresar con el rol **Docente Asesor**, el sistema abre el panel de evaluación:
 
 <p align="center">
   <img src="img/screenshot_panel_aprobacion.png" alt="Panel de Asesoría y Aprobación" width="90%" />
 </p>
 
-- El asesor **solo visualiza las postulaciones donde ha sido nombrado formalmente**.
-- Cuenta con acceso de lectura y descarga a todos los anexos técnicos subidos por el estudiante.
+- Por defecto, el docente solo visualiza las postulaciones **donde fue formalmente asignado por el Comité**.
+- Dispone de una pestaña rápida **"Mis Asignadas"** y un buscador en tiempo real para localizar estudiantes por nombre, cédula o título.
 
 ---
 
-### 6.2 Supervisión y Avance del Proyecto (`EN_PROCESO`)
+### 5.2 Gestión de la Etapa de Desarrollo (`EN_PROCESO`)
 
-Cuando el proyecto está en etapa de ejecución:
-1. El docente revisa las entregas parciales y avances de tesis o prototipo.
-2. Si el avance es satisfactorio pero requiere ajustes menores, puede registrar observaciones formativas en la bitácora.
-3. Si el avance presenta deficiencias metodológicas graves, el docente puede activar **"Solicitar Corrección"**, pausando el avance formal hasta que el estudiante subsane.
+Una vez que el Comité aprueba la propuesta y asigna al asesor, el trámite entra en `EN_PROCESO`:
 
----
-
-### 6.3 Visto Bueno y Programación de Sustentación
-
-Cuando el proyecto cumple con la totalidad de los objetivos fijados:
-1. El asesor presiona el botón **"Dar Visto Bueno (Avanzar a Sustentación)"**.
-2. Se despliega el formulario de sustentación donde el docente registra:
-   - **Fecha y Hora:** Calendario oficial de la defensa.
-   - **Lugar / Enlace:** Aula física asignada en el campus o enlace de videoconferencia (ej. *Bloque 4, Aula 201* o *Microsoft Teams*).
-3. El sistema envía automáticamente una notificación al estudiante y actualiza el estado a `SUSTENTACION`.
+1. El docente abre el expediente del estudiante haciendo clic en **"Ver Detalle / Gestionar"**.
+2. Revisa la **Directriz del Comité** recibida al momento de la asignación.
+3. Descarga el anteproyecto y los archivos de trabajo entregados por el estudiante.
+4. Puede registrar **Notas de Asesoría** periódicas para dejar constancia de reuniones y compromisos de avance.
 
 ---
 
-## 7. Módulo 4: Manual del Comité de Grados y Coordinación
+### 5.3 Devolución Formativa vs. Visto Bueno
 
-### 7.1 Revisión Documental Preliminar (`REVISION_DOCUMENTAL`)
+El asesor tiene dos caminos según el desempeño del estudiante:
 
-El Comité de Trabajos de Grado tiene competencia sobre todas las postulaciones radicadas en la facultad:
-1. Al recibir una nueva postulación en `POSTULACION`, el evaluador inicia la verificación haciendo clic en **"Iniciar Revisión Documental"**.
-2. Se cotejan los documentos contra la tabla de requisitos de la modalidad correspondiente.
-3. Si los documentos están completos, se presiona **"Aprobar Requisitos (APROBACION)"**.
-4. Si falta un anexo o no cumple con el formato institucional, se presiona **"Solicitar Subsanación"** indicando detalladamente el requerimiento.
+#### Opción A: Solicitar Corrección de Avance
+Si el informe técnico o prototipo presenta inconsistencias:
+1. Haga clic en **"Solicitar Corrección"**.
+2. Escriba las observaciones metodológicas detalladas.
+3. Opcionalmente, adjunte un archivo con notas o correcciones en formato Word/PDF (`archivo_asesor`).
+4. Confirme la solicitud. El estudiante quedará bloqueado hasta que entregue la subsanación correspondiente.
 
----
-
-### 7.2 Asignación Formal de Asesor y Directriz Inicial
-
-En el estado `APROBACION`:
-1. El Comité abre el expediente del estudiante.
-2. Selecciona un docente en el listado desplegable de **"Docentes Asesores Activos"**.
-3. Redacta la **Directriz Institucional de Asignación** (alcance, fechas de entrega esperadas y recomendaciones de comité).
-4. Al confirmar la asignación, el sistema transiciona automáticamente a **`EN_PROCESO`** y notifica al docente y al estudiante.
+#### Opción B: Otorgar Visto Bueno y Avanzar a Sustentación
+Cuando el estudiante ha cumplido con el 100% de los objetivos del proyecto:
+1. Haga clic en el botón verde **"Dar Visto Bueno (Avanzar a Sustentación)"**.
+2. El sistema abrirá el modal de programación de la defensa pública.
 
 ---
 
-### 7.3 Ratificación de Sustentaciones y Cierre (`FINALIZADO`)
+### 5.4 Programación y Calificación de la Sustentación
 
-Una vez que el jurado o asesor evalúa la sustentación:
-1. La postulación ingresa a **`REVISION_COMITE`**.
-2. El Comité verifica el acta de sustentación y la calificación otorgada.
-3. Si todo está en orden, se presiona **"Ratificar y Finalizar Trámite (FINALIZADO)"**.
-4. Esta acción bloquea definitivamente el expediente (los estados terminales son inmutables) y habilita la expedición del certificado oficial.
+En la etapa `SUSTENTACION`:
 
----
+#### 1. Programar Fecha y Lugar:
+- Seleccione la **Fecha y Hora** convenidas para la sustentación.
+- Ingrese el **Lugar**: Puede ser un aula física del campus (ej. *Campus Robledo - Bloque E, Aula 302*) o un enlace de reunión virtual institucional (ej. *Enlace Microsoft Teams*).
+- El sistema notificará de inmediato al estudiante.
 
-## 8. Módulo 5: Manual del Administrador del Sistema
-
-### 8.1 Gobierno de Cuentas y Aprobación de Usuarios
-
-Por políticas de seguridad, el Administrador tiene control de acceso al sistema:
-1. En el menú superior, navegue a **"Usuarios Pendientes"** (`/usuarios/pendientes`).
-2. Visualice las solicitudes de registro con su rol solicitado, cédula y programa.
-3. Tras verificar su autenticidad en los sistemas centrales del ITM, presione **"Aprobar"** para otorgarle acceso inmediato, o **"Rechazar"** en caso de datos inconsistentes.
+#### 2. Calificar la Sustentación:
+Tras llevarse a cabo la presentación:
+1. El docente o jurado hace clic en **"Calificar Sustentación"**.
+2. Digita la **Calificación Numérica** (escala de `0.0` a `5.0`).
+3. Registra el **Concepto del Jurado** (observaciones, fortalezas del proyecto y recomendaciones).
+4. Si la nota es igual o superior a `3.0`, el sistema aprueba y transiciona a **`REVISION_COMITE`** para el cierre formal.
+5. Si la nota es inferior a `3.0`, el trámite puede ser reprobado hacia `RECHAZADO`.
 
 ---
 
-### 8.2 Dashboard de Analítica y Métricas Institucionales
+## 6. Módulo del Comité de Grados: Dictamen y Gobierno
 
-El Administrador y los miembros del Comité disponen de un tablero de inteligencia académica en tiempo real:
+### 6.1 Bandeja de Entrada General y Filtros de Búsqueda
+
+Los miembros del Comité de Trabajos de Grado tienen visibilidad sobre **todas las postulaciones de la facultad**:
+
+- **Filtro por Estado:** Permite aislar rápidamente las postulaciones nuevas en `POSTULACION`, las que están en `REVISION_DOCUMENTAL` o las sustentaciones listas para ratificar en `REVISION_COMITE`.
+- **Filtro por Modalidad:** Segmentación por Trabajo de Grado, Prácticas, Emprendimiento, etc.
+- **Búsqueda Dinámica:** Búsqueda instantánea sin recargar la página.
+
+---
+
+### 6.2 Revisión Documental y Requisitos Mínimos
+
+Al ingresar una nueva solicitud:
+
+1. El miembro del Comité hace clic en **"Iniciar Revisión Documental"**, pasando el estado a `REVISION_DOCUMENTAL`.
+2. Revisa pestaña por pestaña los anexos cargados.
+3. **Cotejo de Requisitos:**
+   - ¿Cumple con el número mínimo de créditos aprobados en el programa?
+   - ¿El anteproyecto cuenta con planteamiento, objetivos y metodología clara?
+   - ¿Las cartas empresariales o de laboratorio están debidamente firmadas y selladas?
+4. Si todo es correcto, presiona **"Aprobar Requisitos Documentales"**, avanzando a `APROBACION`.
+
+---
+
+### 6.3 Asignación de Docente Asesor y Emisión de Directriz
+
+En la etapa `APROBACION`:
+
+1. El Comité abre el expediente y presiona **"Asignar Docente Asesor"**.
+2. Selecciona un profesor del listado oficial de **Docentes Asesores Activos**.
+3. **Redacción de la Directriz Técnica:**  
+   Es obligatorio registrar una directriz institucional (ej. *"El estudiante debe profundizar en el diseño del circuito de potencia según observaciones del comité de fecha 28/09/2026"*).
+4. Al confirmar, el sistema asocia al asesor, cambia el estado a **`EN_PROCESO`** y remite el expediente a la bandeja del docente.
+
+---
+
+### 6.4 Ratificación de Sustentaciones y Cierre de Expediente
+
+Cuando la sustentación ha sido aprobada por el asesor y jurados:
+
+1. El trámite llega a la bandeja del Comité en estado **`REVISION_COMITE`**.
+2. El Comité verifica el acta de sustentación y la calificación registrada.
+3. Abre el modal **"Ratificar y Finalizar Proceso de Grado"**.
+4. Ingrese el **Número Oficial de Acta de Grado** emitido por el consejo de facultad.
+5. Al hacer clic en **"Finalizar Proyecto"**:
+   - El estado pasa definitivamente a **`FINALIZADO`**.
+   - Se sella el expediente.
+   - El motor de ReportLab compila el Certificado Oficial de Grado con firma criptográfica.
+
+---
+
+### 6.5 Causales de Rechazo y Procedimiento Notificatorio
+
+Si una postulación no cumple con el reglamento institucional (ej. fraude, documentación falsa, retiro voluntario o vencimiento improrrogable de términos):
+
+1. El Comité presiona el botón **"Rechazar Definitivamente"**.
+2. Debe seleccionar la causal reglamentaria y redactar la justificación jurídica/académica obligatoria.
+3. El sistema marca el trámite como **`RECHAZADO`**, congela el proceso y remite la notificación oficial al estudiante.
+
+---
+
+## 7. Módulo del Administrador: Control y Analítica
+
+### 7.1 Gestión de Cuentas Pendientes
+
+El Administrador tiene el control de la seguridad y el gobierno de usuarios:
+
+1. En la barra superior, seleccione **"Usuarios Pendientes"** (`/usuarios/pendientes`).
+2. Se muestra la lista de todos los registros que esperan verificación.
+3. Opciones por cada registro:
+   - 🟢 **Aprobar:** Activa la cuenta de inmediato (`is_active = True`). El usuario puede iniciar sesión en ese mismo segundo.
+   - 🔴 **Rechazar:** Elimina la solicitud de la base de datos e impide el acceso al sistema.
+
+---
+
+### 7.2 Tablero Analítico Institucional (Dashboard)
+
+El Dashboard analítico (`/dashboard`) proporciona métricas estratégicas para la toma de decisiones:
 
 <p align="center">
   <img src="img/screenshot_dashboard.png" alt="Dashboard Analítico SIGMA ITM" width="90%" />
 </p>
 
-El tablero proporciona:
-- **Distribución por Estado:** Conteo de trámites en radicación, revisión, asesoría, sustentación y finalizados.
-- **Modalidades Más Demandadas:** Gráfico comparativo de las 10 opciones de grado para toma de decisiones directivas.
-- **Carga de Asesorías Docentes:** Monitoreo del número de estudiantes asignados por cada profesor para evitar sobrecargas de trabajo.
-- **Tiempos Promedio de Respuesta:** Días promedio que toma una solicitud en ser atendida por el Comité.
+#### Indicadores Clave (KPIs):
+- **Total de Postulaciones Radicadas:** Conteo histórico acumulado.
+- **Trámites en Curso Activos:** Volumen actual de trabajo de la facultad.
+- **Gráfico de Barras por Estado:** Cuántos procesos están radicados, en revisión, en asesoría, sustentando o finalizados.
+- **Gráfico de Torta (Pie Chart) por Modalidad:** Distribución porcentual entre las 10 modalidades para identificar las más demandadas.
+- **Métricas de Rendimiento:** Tiempos promedio de atención y balance de carga por docente asesor.
 
 ---
 
-## 9. Ciclo de Vida del Trámite y Máquina de Estados
+### 7.3 Auditoría Forense (`HistorialEstado`)
 
-El siguiente diagrama vectorial sintetiza las transiciones oficiales del sistema y los roles con competencia en cada una:
+Toda acción en SIGMA ITM genera un registro inmutable en la tabla `HistorialEstado`:
+- **ID de la Postulación.**
+- **Usuario que ejecutó la acción** (con su rol en ese momento).
+- **Estado Anterior y Estado Nuevo.**
+- **Observación completa ingresada.**
+- **Marca booleana de corrección (`fue_correccion`).**
+- **Marca de tiempo con precisión de segundos (Timestamp UTC/Colombia).**
+
+Esta bitácora puede consultarse en cualquier momento desde el expediente de la postulación para dirimir reclamos académicos o auditorías de acreditación de alta calidad.
+
+---
+
+## 8. Máquina de Estados y Matriz de Transiciones
+
+El siguiente diagrama representa de forma exhaustiva la máquina de estados finita que gobierna el sistema:
 
 <p align="center">
   <img src="img/diagrama_estados.svg" alt="Diagrama de Máquina de Estados SIGMA ITM" width="100%" />
 </p>
 
-### Reglas Clave de Transición:
-- **No se permiten saltos:** Un trámite no puede pasar de `POSTULACION` a `SUSTENTACION` sin haber cursado la revisión, aprobación y asesoría previa.
-- **Inmutabilidad Terminal:** Una vez en `FINALIZADO` o `RECHAZADO`, ningún usuario (ni siquiera el Administrador) puede revertir o modificar los datos del expediente.
-- **Registro Inmutable de Auditoría:** Cada cambio de estado queda registrado con fecha exacta, responsable y observación en la base de datos.
+### Matriz Detallada de Transiciones de Estado:
+
+| Estado Origen | Estado Destino | Actor Responsable | Condición Previa Requerida | Efecto en el Sistema |
+| :--- | :--- | :--- | :--- | :--- |
+| `[*]` (Inicio) | `POSTULACION` | Estudiante | Formulario completo + Anexo obligatorio de la modalidad. | Trámite creado en base de datos. Notifica a Coordinación. |
+| `POSTULACION` | `REVISION_DOCUMENTAL` | Comité | Documentos subidos y legibles. | Apertura formal del expediente para estudio. |
+| `POSTULACION` | `RECHAZADO` | Comité | Falsedad documental o modalidad no aplicable. | Trámite finalizado negativamente. |
+| `REVISION_DOCUMENTAL` | `APROBACION` | Comité | Anexos completos y conformes al reglamento. | Trámite avalado para asignación docente. |
+| `REVISION_DOCUMENTAL` | `REVISION_DOCUMENTAL` | Comité | Documentación incompleta o con errores. | Activa `requiere_correccion = True`. Pausa el trámite. |
+| `REVISION_DOCUMENTAL` | `RECHAZADO` | Comité | No subsanación en plazo o inviabilidad técnica. | Trámite archivado con rechazo formal. |
+| `APROBACION` | `EN_PROCESO` | Comité | Selección de Asesor + Redacción de Directriz. | Asesor asignado. Inicia el periodo de trabajo de grado. |
+| `APROBACION` | `RECHAZADO` | Comité | Incompatibilidad de líneas o cupos docentes agotados. | Trámite rechazado por disponibilidad de facultad. |
+| `EN_PROCESO` | `EN_PROCESO` | Docente Asesor | Avances parciales con observaciones formativas. | Notificación de notas formativas al estudiante. |
+| `EN_PROCESO` | `SUSTENTACION` | Docente Asesor | Objetivos al 100% + Visto Bueno del Asesor. | Habilita calendario de sustentación pública. |
+| `EN_PROCESO` | `RECHAZADO` | Docente Asesor | Abandono injustificado del proyecto o plagio. | Cierre disciplinario/académico. |
+| `SUSTENTACION` | `REVISION_COMITE` | Docente Asesor | Sustentación celebrada con calificación ≥ 3.0. | Envío de acta de sustentación al Comité. |
+| `SUSTENTACION` | `RECHAZADO` | Docente Asesor | Calificación reprobatoria (< 3.0) sin opción de ajuste. | Reprobación formal de la opción de grado. |
+| `REVISION_COMITE` | `FINALIZADO` | Comité | Acta de Grado aprobada por consejo de facultad. | Expedición del Certificado Oficial con Hash SHA-256. |
+| `REVISION_COMITE` | `RECHAZADO` | Comité | Inconsistencias insubsanables en acta de jurados. | No ratificación del grado. |
 
 ---
 
-## 10. Preguntas Frecuentes y Solución de Problemas (FAQ)
+## 9. Casos Prácticos de Extremo a Extremo (Walkthrough)
 
-### ¿Por qué los botones de avance están deshabilitados en mi panel?
-> **Respuesta:** Verifique si su trámite tiene una observación pendiente (`requiere_correccion = True`). Si es estudiante, debe radicar el archivo subsanado. Si es evaluador, debe esperar a que el estudiante envíe la subsanación.
+### 9.1 Caso A: Flujo Regular Aprobado (Trabajo de Grado)
 
-### ¿Puedo radicar dos modalidades de grado simultáneamente?
-> **Respuesta:** No. El sistema admite una única postulación activa por estudiante. Si desea cambiar de modalidad, el trámite previo debe ser formalmente rechazado o archivado por el Comité.
-
-### ¿Por qué mi archivo no se sube si termina en `.pdf`?
-> **Respuesta:** El sistema inspecciona los bytes internos (*magic numbers*). Si guardó un archivo con formato incorrecto o un documento corrupto, el servidor lo rechazará para proteger la integridad de la base de datos. Asegúrese de exportar un PDF estándar desde Word, LibreOffice o Adobe Acrobat.
-
-### ¿Cómo cambio mi contraseña o datos personales?
-> **Respuesta:** Los cambios de contraseña o actualización de programa académico pueden solicitarse a la Coordinación Académica o directamente a través del Administrador de la plataforma.
+1. **Día 1 (Registro):** La estudiante *Valentina Ríos* se registra en el sistema. El Administrador verifica su matrícula activa y aprueba su cuenta.
+2. **Día 2 (Radicación):** Valentina ingresa a su panel y radica la modalidad **Trabajo de Grado**, con el proyecto *"Sistema IoT para Monitoreo de Calidad de Aire en Campus ITM"*. Adjunta su anteproyecto en formato PDF. El trámite queda en `POSTULACION`.
+3. **Día 3 (Revisión):** El Comité revisa los documentos, los encuentra conformes y avanza a `REVISION_DOCUMENTAL` y posteriormente a `APROBACION`.
+4. **Día 4 (Asignación):** El Comité asigna al docente *Carlos Mario Pérez* como asesor, emitiendo la directriz: *"Enfocar el prototipo en sensores MQ-135 calibrados con norma nacional"*. El trámite pasa a `EN_PROCESO`.
+5. **Meses 1 al 4 (Asesorías):** Valentina sube entregas periódicas. El docente registra notas de acompañamiento en el panel.
+6. **Mes 5 (Aval):** El asesor otorga el **Visto Bueno** y programa la sustentación para el *15 de noviembre a las 10:00 AM en el Aula E-204*. El estado pasa a `SUSTENTACION`.
+7. **Día de la Sustentación:** Valentina defiende su proyecto. El jurado califica con `4.8 (Aprobado con honores)` y el asesor envía el resultado a `REVISION_COMITE`.
+8. **Día siguiente (Cierre):** El Comité ratifica el resultado, asigna el Acta de Grado N° `ITM-FI-2026-089` y finaliza el proceso (`FINALIZADO`). Valentina descarga su Certificado Oficial en PDF directamente desde su portal.
 
 ---
 
-*Manual elaborado para el Instituto Tecnológico Metropolitano (ITM) — Facultad de Ingenierías.*  
-*SIGMA ITM © 2026. Todos los derechos reservados.*
+### 9.2 Caso B: Flujo con Corrección y Subsanación
+
+1. El estudiante *Andrés Mejía* radica la modalidad **Prácticas Profesionales**.
+2. En la etapa `REVISION_DOCUMENTAL`, el Comité detecta que la carta de la empresa no especifica la afiliación a la ARL.
+3. El evaluador presiona **"Solicitar Corrección"** e ingresa: *"Falta adjuntar el certificado de afiliación a riesgos laborales (ARL) emitido por la empresa"*.
+4. El trámite se pausa automáticamente con la bandera `requiere_correccion = True`.
+5. Andrés ingresa a su panel, lee la observación y solicita la carta a Recursos Humanos de la empresa.
+6. Andrés redacta su mensaje de subsanación y adjunta el certificado de la ARL en PDF.
+7. Al enviar, el trámite se descongela. El Comité verifica el nuevo anexo, aprueba la documentación y el proceso continúa normalmente sin demoras ni trámites físicos.
+
+---
+
+## 10. Preguntas Frecuentes y Solución de Problemas (Troubleshooting)
+
+### P1: Olvidé mi contraseña, ¿cómo la restablezco?
+> **R:** Por seguridad institucional, contacte al Administrador del sistema o a la Coordinación de Grados de su facultad aportando su cédula y correo institucional para generar un enlace seguro de restablecimiento.
+
+### P2: ¿Por qué no puedo subir un archivo si es menor de 10 MB?
+> **R:** El sistema analiza la firma binaria del archivo. Asegúrese de que el archivo no esté corrupto, dañado o con extensiones manipuladas. Si está en formato Word antiguo (`.doc`), guárdelo como Word moderno (`.docx`) o expórtelo como PDF estándar.
+
+### P3: ¿Por qué los botones de aprobación están deshabilitados para el docente asesor?
+> **R:** Los botones solo se activan si:
+> 1. El usuario actual es el docente nombrado formalmente para ese proyecto.
+> 2. El trámite está en una etapa bajo competencia del asesor (`EN_PROCESO` o `SUSTENTACION`).
+> 3. El trámite no está pausado por una corrección pendiente del estudiante.
+
+### P4: ¿Qué validez tiene el código Hash SHA-256 del certificado PDF?
+> **R:** El hash SHA-256 es una huella digital matemática única e irrepetible generada con los datos del acta, fecha, estudiante y calificación. Cualquier alteración de un solo carácter en el documento invalidará el código, permitiendo a la Secretaría General verificar de forma instantánea la legitimidad del paz y salvo.
+
+---
+
+<div align="center">
+
+**Instituto Tecnológico Metropolitano (ITM)**  
+*Institución Universitaria acreditada en Alta Calidad*  
+Facultad de Ingenierías — Medellín, Colombia  
+**SIGMA ITM — Versión 1.0 (2026)**
+
+</div>
