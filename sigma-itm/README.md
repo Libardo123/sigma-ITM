@@ -2,6 +2,23 @@
 
 <div align="center">
 
+<img src="docs/img/banner.jpg" alt="SIGMA ITM Banner" width="100%" />
+
+<br/>
+
+[![Django](https://img.shields.io/badge/Django-6.0-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![DRF](https://img.shields.io/badge/DRF-3.15-red?style=for-the-badge&logo=django&logoColor=white)](https://www.django-rest-framework.org/)
+[![React](https://img.shields.io/badge/React-19.0-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Tests](https://img.shields.io/badge/Tests-57%20Pytest%20|%2018%20Vitest-brightgreen?style=for-the-badge)](https://pytest.org/)
+
+**Plataforma institucional para la radicación, supervisión docente, revisión documental, sustentación y certificación automatizada de trabajos y modalidades de grado.**
+
+*Facultad de Ingenierías — Instituto Tecnológico Metropolitano (ITM), Medellín, Colombia*
+
+</div>
+
 ---
 
 ## 📑 Tabla de Contenidos
@@ -130,8 +147,6 @@ El ciclo de vida de un trámite en SIGMA ITM está gobernado por una **máquina 
   <img src="docs/img/diagrama_estados.svg" alt="Diagrama de Máquina de Estados SIGMA-ITM" width="100%" />
 </p>
 
-</details>
-
 ### Reglas de Negocio del Motor de Estados:
 
 - **Validación Documental Previa:** No es posible avanzar de `POSTULACION` a `REVISION_DOCUMENTAL` si la postulación no cuenta con los archivos mínimos exigidos por la modalidad.
@@ -148,15 +163,11 @@ El proyecto sigue una arquitectura desacoplada y escalable basada en micro-servi
   <img src="docs/img/diagrama_arquitectura.svg" alt="Diagrama de Arquitectura de Software SIGMA-ITM" width="100%" />
 </p>
 
-</details>
-
 ### Modelo Entidad-Relación Conceptual
 
 <p align="center">
   <img src="docs/img/diagrama_entidad_relacion.svg" alt="Diagrama Entidad Relación SIGMA-ITM" width="100%" />
 </p>
-
-</details>
 
 ---
 
