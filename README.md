@@ -618,12 +618,13 @@ python scripts/simulacion_flujo_completo.py
 
 ## 📚 Documentación Adicional
 
-En la carpeta [`docs/`](docs/) se encuentra disponible la documentación técnica y académica complementaria:
+En la carpeta [`docs/`](sigma-itm/docs/) se encuentra disponible la documentación técnica, operativa y académica complementaria:
 
-- 📄 [**ANALISIS_PROYECTO.md**](docs/ANALISIS_PROYECTO.md): Especificación técnica exhaustiva del diseño de arquitectura.
-- 📋 [**plan_funcionalidad_flujos.md**](docs/plan_funcionalidad_flujos.md): Plan funcional detallado por casos de uso.
-- 📑 [**Propuesta de Trabajo de Grado (Formato ITM)**](docs/CF-FDE-201-Propuesta-TdG-FI-SIGMA-ITM-2devs-310826.docx): Documento oficial de formulación académica del proyecto.
-- 📝 [**Historias de Usuario (HU-01 a HU-15)**](docs/Historias_de_Usuario_SIGMA_ITM_310826.docx): Especificación de requerimientos y criterios de aceptación.
+- 📘 [**MANUAL_DE_USUARIO.md**](sigma-itm/docs/MANUAL_DE_USUARIO.md): **Manual de usuario oficial ilustrado** con paso a paso para estudiantes, docentes asesores, comité y administradores.
+- 📄 [**ANALISIS_PROYECTO.md**](sigma-itm/docs/ANALISIS_PROYECTO.md): Especificación técnica exhaustiva del diseño de arquitectura.
+- 📋 [**plan_funcionalidad_flujos.md**](sigma-itm/docs/plan_funcionalidad_flujos.md): Plan funcional detallado por casos de uso.
+- 📑 [**Propuesta de Trabajo de Grado (Formato ITM)**](sigma-itm/docs/CF-FDE-201-Propuesta-TdG-FI-SIGMA-ITM-2devs-310826.docx): Documento oficial de formulación académica del proyecto.
+- 📝 [**Historias de Usuario (HU-01 a HU-15)**](sigma-itm/docs/Historias_de_Usuario_SIGMA_ITM_310826.docx): Especificación de requerimientos y criterios de aceptación.
 
 ---
 

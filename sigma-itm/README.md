@@ -618,8 +618,9 @@ python scripts/simulacion_flujo_completo.py
 
 ## 📚 Documentación Adicional
 
-En la carpeta [`docs/`](docs/) se encuentra disponible la documentación técnica y académica complementaria:
+En la carpeta [`docs/`](docs/) se encuentra disponible la documentación técnica, operativa y académica complementaria:
 
+- 📘 [**MANUAL_DE_USUARIO.md**](docs/MANUAL_DE_USUARIO.md): **Manual de usuario oficial ilustrado** con paso a paso para estudiantes, docentes asesores, comité y administradores.
 - 📄 [**ANALISIS_PROYECTO.md**](docs/ANALISIS_PROYECTO.md): Especificación técnica exhaustiva del diseño de arquitectura.
 - 📋 [**plan_funcionalidad_flujos.md**](docs/plan_funcionalidad_flujos.md): Plan funcional detallado por casos de uso.
 - 📑 [**Propuesta de Trabajo de Grado (Formato ITM)**](docs/CF-FDE-201-Propuesta-TdG-FI-SIGMA-ITM-2devs-310826.docx): Documento oficial de formulación académica del proyecto.
