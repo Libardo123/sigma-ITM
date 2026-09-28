@@ -1,0 +1,16 @@
+{
+  "include": [
+    "sigma-itm/backend"
+  ],
+  "extraPaths": [
+    "C:/Users/liba-/AppData/Local/Programs/Python/Python314/Lib/site-packages",
+    "sigma-itm/backend"
+  ],
+  "pythonVersion": "3.14",
+  "pythonPlatform": "Windows",
+  "pythonPath": "C:/Users/liba-/AppData/Local/Programs/Python/Python314/python.exe",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingModuleSource": "none",
+  "reportAttributeAccessIssue": "none"
+}

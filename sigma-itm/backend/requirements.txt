@@ -1,0 +1,22 @@
+asgiref==3.12.1
+Django==6.1.1
+django-cors-headers==4.9.0
+djangorestframework==3.18.1
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.13.0
+python-decouple==3.8
+sqlparse==0.6.0
+
+# Bloque 6: generación de certificados PDF al finalizar el proceso
+reportlab==4.2.5
+
+# Bloque 7: validación de archivos por contenido (magic bytes), no solo extensión
+python-magic-bin==0.4.14; sys_platform == "win32"
+python-magic==0.4.27; sys_platform != "win32"
+
+# Bloque 9: rate limiting en el endpoint de login
+django-ratelimit==4.1.0
+
+# Bloque 11: pruebas automatizadas
+pytest==8.3.4
+pytest-django==4.9.0

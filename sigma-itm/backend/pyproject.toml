@@ -1,0 +1,14 @@
+# pyproject.toml — Backend SIGMA ITM
+# Configuración de herramientas de Python para el proyecto
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["tests.py", "test_*.py", "*_test.py"]
+addopts = "-v --tb=short"
+
+[tool.pyright]
+# Configuración de type-checking para el backend Django
+include = ["."]
+exclude = ["venv", ".venv", "__pycache__", "migrations"]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"

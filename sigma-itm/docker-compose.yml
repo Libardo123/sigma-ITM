@@ -1,0 +1,81 @@
+# ================================================================
+# docker-compose.yml — SIGMA ITM
+# Orquestación de servicios: backend Django + frontend React + BD
+# Uso: docker compose up -d
+# ================================================================
+
+services:
+
+  # ── Base de datos PostgreSQL ──────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: sigma_itm_db
+    restart: unless-stopped
+    env_file:
+      - path: backend/.env
+        required: false
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-sigma_itm}
+      POSTGRES_USER:     ${DB_USER:-sigma_itm}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-sigma_itm_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-sigma_itm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend Django ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sigma_itm_backend
+    restart: unless-stopped
+    env_file:
+      - path: backend/.env
+        required: false
+    environment:
+      DB_ENGINE: postgres
+      DB_HOST:   db
+      DB_NAME:   ${DB_NAME:-sigma_itm}
+      DB_USER:   ${DB_USER:-sigma_itm}
+      DB_PASSWORD: ${DB_PASSWORD:-sigma_itm_pass}
+    volumes:
+      - ./backend:/app
+      - media_files:/app/media
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py seed_data &&
+             python manage.py runserver 0.0.0.0:8000"
+
+  # ── Frontend React/Vite ───────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sigma_itm_frontend
+    restart: unless-stopped
+    env_file:
+      - path: frontend/.env
+        required: false
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+# ── Volúmenes persistentes ────────────────────────────────────
+volumes:
+  postgres_data:
+  media_files:

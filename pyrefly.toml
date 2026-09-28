@@ -1,0 +1,12 @@
+python-interpreter-path = "C:/Users/liba-/AppData/Local/Programs/Python/Python314/python.exe"
+
+search-path = [
+    "C:/Users/liba-/AppData/Local/Programs/Python/Python314/Lib/site-packages",
+    "sigma-itm/backend",
+    "sigma-itm/backend/core",
+    "backend",
+    "backend/core"
+]
+
+[errors]
+missing-import = "ignore"

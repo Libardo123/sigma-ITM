@@ -1,0 +1,373 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 840" width="100%" height="100%" style="background:#070b14; font-family:'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <!-- Background Gradients -->
+    <radialGradient id="bgGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#141e33" />
+      <stop offset="100%" stop-color="#070b14" />
+    </radialGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="feCardBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0e172a" />
+      <stop offset="100%" stop-color="#0a1020" />
+    </linearGradient>
+    <linearGradient id="beCardBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0e1c2e" />
+      <stop offset="100%" stop-color="#091424" />
+    </linearGradient>
+    <linearGradient id="dataCardBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#16152a" />
+      <stop offset="100%" stop-color="#0c0d1e" />
+    </linearGradient>
+
+    <!-- Header Highlights -->
+    <linearGradient id="reactGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00d8ff" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="djangoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="dbGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="shadowCard" x="-10%" y="-10%" width="120%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.65" />
+    </filter>
+    <filter id="glowBlue" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#0284c7" flood-opacity="0.5" />
+    </filter>
+    <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#10b981" flood-opacity="0.4" />
+    </filter>
+
+    <!-- Markers -->
+    <marker id="arrowCyan" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 1 1 L 8 4.5 L 1 8 Z" fill="#00d8ff" />
+    </marker>
+    <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 1 1 L 8 4.5 L 1 8 Z" fill="#10b981" />
+    </marker>
+    <marker id="arrowPurple" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 1 1 L 8 4.5 L 1 8 Z" fill="#a855f7" />
+    </marker>
+    <marker id="arrowAmber" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M 1 1 L 8 4.5 L 1 8 Z" fill="#f59e0b" />
+    </marker>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="100%" height="100%" fill="url(#bgGlow)" />
+  
+  <!-- Subtle Grid Pattern -->
+  <g opacity="0.04" stroke="#ffffff" stroke-width="1">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" />
+    </pattern>
+    <rect width="100%" height="100%" fill="url(#grid)" />
+  </g>
+
+  <!-- Title Header -->
+  <g transform="translate(60, 42)">
+    <rect x="0" y="0" width="168" height="26" rx="13" fill="#1e293b" stroke="#334155" stroke-width="1" />
+    <circle cx="12" cy="13" r="5" fill="#10b981" />
+    <text x="26" y="17" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="1">ARQUITECTURA DE SOFTWARE</text>
+
+    <text x="0" y="56" fill="#f8fafc" font-size="24" font-weight="800" letter-spacing="-0.5">Topología del Sistema SIGMA-ITM</text>
+    <text x="0" y="78" fill="#64748b" font-size="13">Separación de responsabilidades: Frontend SPA desacoplado, API REST con Motor de Estados y Persistencia Transaccional</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- COLUMN 1: CLIENTE (FRONTEND SPA)                              -->
+  <!-- ============================================================== -->
+  <g transform="translate(50, 140)">
+    <!-- Container Box -->
+    <rect x="0" y="0" width="340" height="650" rx="16" fill="url(#feCardBg)" stroke="#1e3a5f" stroke-width="1.5" filter="url(#shadowCard)" />
+    
+    <!-- Top Accent Bar -->
+    <rect x="0" y="0" width="340" height="6" rx="3" fill="url(#reactGrad)" />
+    
+    <!-- Header -->
+    <g transform="translate(24, 28)">
+      <rect x="0" y="0" width="38" height="38" rx="8" fill="#00d8ff" fill-opacity="0.15" stroke="#00d8ff" stroke-width="1" />
+      <text x="19" y="24" fill="#00d8ff" font-size="18" text-anchor="middle" font-weight="bold">⚛</text>
+      
+      <text x="50" y="18" fill="#f1f5f9" font-size="16" font-weight="700">Frontend Client</text>
+      <text x="50" y="34" fill="#38bdf8" font-size="11" font-weight="600">Single Page Application (SPA)</text>
+    </g>
+
+    <!-- Component Cards Inside Frontend -->
+    <!-- 1. UI & Styles -->
+    <g transform="translate(20, 85)">
+      <rect x="0" y="0" width="300" height="74" rx="10" fill="#0b1324" stroke="#1e293b" stroke-width="1" />
+      <text x="16" y="24" fill="#e2e8f0" font-size="13" font-weight="700">React 19 + Tailwind CSS</text>
+      <text x="16" y="42" fill="#94a3b8" font-size="11">Vite 6 · Lucide Icons · Headless UI</text>
+      <text x="16" y="58" fill="#64748b" font-size="10.5">Componentes reactivos accesibles &amp; UI adaptable</text>
+      <circle cx="282" cy="20" r="4" fill="#00d8ff" />
+    </g>
+
+    <!-- 2. Routing -->
+    <g transform="translate(20, 172)">
+      <rect x="0" y="0" width="300" height="70" rx="10" fill="#0b1324" stroke="#1e293b" stroke-width="1" />
+      <text x="16" y="24" fill="#e2e8f0" font-size="13" font-weight="700">React Router v7</text>
+      <text x="16" y="42" fill="#94a3b8" font-size="11">Rutas protegidas por Rol (RBAC)</text>
+      <text x="16" y="58" fill="#64748b" font-size="10.5">Guards: Estudiante / Asesor / Comité / Admin</text>
+    </g>
+
+    <!-- 3. State & Context -->
+    <g transform="translate(20, 255)">
+      <rect x="0" y="0" width="300" height="74" rx="10" fill="#0b1324" stroke="#1e293b" stroke-width="1" />
+      <text x="16" y="24" fill="#e2e8f0" font-size="13" font-weight="700">AuthContext &amp; User Session</text>
+      <text x="16" y="42" fill="#94a3b8" font-size="11">Estado global de sesión activa</text>
+      <text x="16" y="58" fill="#64748b" font-size="10.5">Almacenamiento seguro tokens Access &amp; Refresh</text>
+    </g>
+
+    <!-- 4. HTTP Client Axios -->
+    <g transform="translate(20, 342)">
+      <rect x="0" y="0" width="300" height="96" rx="10" fill="#0c1830" stroke="#0284c7" stroke-width="1.2" />
+      <rect x="235" y="10" width="55" height="18" rx="9" fill="#0369a1" />
+      <text x="262" y="22" fill="#e0f2fe" font-size="9" text-anchor="middle" font-weight="bold">CLIENT</text>
+      <text x="16" y="25" fill="#38bdf8" font-size="13" font-weight="700">Axios Interceptors Layer</text>
+      <text x="16" y="45" fill="#94a3b8" font-size="11">Inyección automática de `Bearer &lt;token&gt;`</text>
+      <text x="16" y="63" fill="#94a3b8" font-size="11">Auto-refresh en HTTP 401 Unauthorized</text>
+      <text x="16" y="81" fill="#64748b" font-size="10.5">Manejo unificado de errores y desconexión</text>
+    </g>
+
+    <!-- 5. Modals & Forms Handlers -->
+    <g transform="translate(20, 452)">
+      <rect x="0" y="0" width="300" height="74" rx="10" fill="#0b1324" stroke="#1e293b" stroke-width="1" />
+      <text x="16" y="24" fill="#e2e8f0" font-size="13" font-weight="700">Form Handlers &amp; File Uploads</text>
+      <text x="16" y="42" fill="#94a3b8" font-size="11">Multipart/form-data con feedback de progreso</text>
+      <text x="16" y="58" fill="#64748b" font-size="10.5">Validación previa de extensiones y tamaños</text>
+    </g>
+
+    <!-- Mini Footer Spec -->
+    <g transform="translate(20, 545)">
+      <rect x="0" y="0" width="300" height="78" rx="8" fill="#080e1a" stroke="#1e293b" stroke-dasharray="3,3" />
+      <text x="14" y="22" fill="#38bdf8" font-size="11" font-weight="bold">⚡ Entorno de Ejecución:</text>
+      <text x="14" y="40" fill="#94a3b8" font-size="10.5">· Node.js v20+ / Vite Dev Server (HMR)</text>
+      <text x="14" y="56" fill="#94a3b8" font-size="10.5">· Build estático distribuible vía Nginx / CDN</text>
+      <text x="14" y="70" fill="#64748b" font-size="10">· Zero State Leaks / Strict Mode compliance</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- COLUMN 2: BACKEND (DJANGO 6 + DRF)                            -->
+  <!-- ============================================================== -->
+  <g transform="translate(470, 140)">
+    <!-- Container Box -->
+    <rect x="0" y="0" width="410" height="650" rx="16" fill="url(#beCardBg)" stroke="#134e4a" stroke-width="1.5" filter="url(#shadowCard)" />
+    
+    <!-- Top Accent Bar -->
+    <rect x="0" y="0" width="410" height="6" rx="3" fill="url(#djangoGrad)" />
+
+    <!-- Header -->
+    <g transform="translate(24, 28)">
+      <rect x="0" y="0" width="38" height="38" rx="8" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="1" />
+      <text x="19" y="24" fill="#10b981" font-size="18" text-anchor="middle" font-weight="bold">🐍</text>
+      
+      <text x="50" y="18" fill="#f1f5f9" font-size="16" font-weight="700">Backend Core &amp; API REST</text>
+      <text x="50" y="34" fill="#34d399" font-size="11" font-weight="600">Django 6.0 · Django REST Framework (DRF)</text>
+    </g>
+
+    <!-- Sub-Block 1: Ingress Security Pipeline -->
+    <g transform="translate(20, 80)">
+      <rect x="0" y="0" width="370" height="98" rx="10" fill="#091823" stroke="#1e3a47" stroke-width="1" />
+      <text x="16" y="22" fill="#34d399" font-size="11" font-weight="bold" letter-spacing="0.5">PERÍMETRO DE SEGURIDAD &amp; FILTRADO</text>
+      
+      <!-- Pills -->
+      <g transform="translate(16, 32)">
+        <rect x="0" y="0" width="105" height="24" rx="6" fill="#0f2b33" stroke="#14b8a6" stroke-width="0.8" />
+        <text x="52" y="16" fill="#5eead4" font-size="10.5" text-anchor="middle">CORS Headers</text>
+      </g>
+      <g transform="translate(130, 32)">
+        <rect x="0" y="0" width="110" height="24" rx="6" fill="#0f2b33" stroke="#14b8a6" stroke-width="0.8" />
+        <text x="55" y="16" fill="#5eead4" font-size="10.5" text-anchor="middle">Ratelimit (Anti-BF)</text>
+      </g>
+      <g transform="translate(250, 32)">
+        <rect x="0" y="0" width="105" height="24" rx="6" fill="#0f2b33" stroke="#14b8a6" stroke-width="0.8" />
+        <text x="52" y="16" fill="#5eead4" font-size="10.5" text-anchor="middle">JWT Blacklist</text>
+      </g>
+      <text x="16" y="82" fill="#94a3b8" font-size="10.5">Middlewares inspeccionan procedencia, rate por IP y validez de tokens</text>
+    </g>
+
+    <!-- Sub-Block 2: ViewSets & Dispatch -->
+    <g transform="translate(20, 190)">
+      <rect x="0" y="0" width="370" height="74" rx="10" fill="#081b26" stroke="#1e3a47" stroke-width="1" />
+      <text x="16" y="24" fill="#f8fafc" font-size="13" font-weight="700">DRF ViewSets &amp; DefaultRouter</text>
+      <text x="16" y="44" fill="#94a3b8" font-size="11">`PostulacionViewSet`, `ModalidadViewSet`, `UserViewSet`</text>
+      <text x="16" y="60" fill="#64748b" font-size="10.5">Control de permisos por Rol (IsAuthenticated, IsComite, IsAsesor)</text>
+    </g>
+
+    <!-- Sub-Block 3: FSM State Engine (Highlight) -->
+    <g transform="translate(20, 276)">
+      <rect x="0" y="0" width="370" height="116" rx="10" fill="#0b2432" stroke="#10b981" stroke-width="1.4" filter="url(#glowGreen)" />
+      <rect x="270" y="12" width="86" height="20" rx="10" fill="#065f46" />
+      <text x="313" y="25" fill="#a7f3d0" font-size="9.5" text-anchor="middle" font-weight="bold">CORE LOGIC</text>
+      
+      <text x="16" y="26" fill="#6ee7b7" font-size="13.5" font-weight="700">Motor de Estados de Postulación</text>
+      <text x="16" y="48" fill="#e2e8f0" font-size="11">Máquina de transición estricta de 7 etapas</text>
+      <text x="16" y="66" fill="#94a3b8" font-size="10.5">· Bloqueo de saltos de estado no permitidos</text>
+      <text x="16" y="82" fill="#94a3b8" font-size="10.5">· Manejo de banderas `requiere_correccion`</text>
+      <text x="16" y="98" fill="#94a3b8" font-size="10.5">· Asignación de jurados / fechas de sustentación</text>
+    </g>
+
+    <!-- Sub-Block 4: Specialized Services -->
+    <g transform="translate(20, 404)">
+      <!-- Validador Modalidades -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="180" height="88" rx="8" fill="#091a27" stroke="#1e3a47" stroke-width="1" />
+        <text x="12" y="20" fill="#38bdf8" font-size="11" font-weight="bold">Validadores Modalidad</text>
+        <text x="12" y="38" fill="#94a3b8" font-size="10">10 modalidades ITM:</text>
+        <text x="12" y="54" fill="#64748b" font-size="9.5">· Reglas de créditos</text>
+        <text x="12" y="68" fill="#64748b" font-size="9.5">· Documentos específicos</text>
+        <text x="12" y="80" fill="#64748b" font-size="9.5">· Validación de anexos</text>
+      </g>
+      <!-- Audit Signals -->
+      <g transform="translate(190, 0)">
+        <rect x="0" y="0" width="180" height="88" rx="8" fill="#091a27" stroke="#1e3a47" stroke-width="1" />
+        <text x="12" y="20" fill="#a855f7" font-size="11" font-weight="bold">Django Signals &amp; Audit</text>
+        <text x="12" y="38" fill="#94a3b8" font-size="10">Historial Inmutable:</text>
+        <text x="12" y="54" fill="#64748b" font-size="9.5">· Estado anterior / nuevo</text>
+        <text x="12" y="68" fill="#64748b" font-size="9.5">· Observación obligatoria</text>
+        <text x="12" y="80" fill="#64748b" font-size="9.5">· Timestamp + Usuario</text>
+      </g>
+    </g>
+
+    <!-- Sub-Block 5: Generators & Async I/O -->
+    <g transform="translate(20, 504)">
+      <!-- ReportLab PDF -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="180" height="66" rx="8" fill="#091a27" stroke="#1e3a47" stroke-width="1" />
+        <text x="12" y="20" fill="#f59e0b" font-size="11" font-weight="bold">ReportLab Engine</text>
+        <text x="12" y="38" fill="#94a3b8" font-size="10">Generación dinámica PDF</text>
+        <text x="12" y="54" fill="#64748b" font-size="9.5">Actas de Grado &amp; Certificados</text>
+      </g>
+      <!-- Mail / Notifications -->
+      <g transform="translate(190, 0)">
+        <rect x="0" y="0" width="180" height="66" rx="8" fill="#091a27" stroke="#1e3a47" stroke-width="1" />
+        <text x="12" y="20" fill="#f43f5e" font-size="11" font-weight="bold">Notificaciones</text>
+        <text x="12" y="38" fill="#94a3b8" font-size="10">SMTP / Console mailer</text>
+        <text x="12" y="54" fill="#64748b" font-size="9.5">Alertas por transición</text>
+      </g>
+    </g>
+
+    <!-- Sub-Block 6: File Verification -->
+    <g transform="translate(20, 580)">
+      <rect x="0" y="0" width="370" height="50" rx="8" fill="#07131e" stroke="#134e4a" stroke-width="1" />
+      <text x="14" y="20" fill="#2dd4bf" font-size="11" font-weight="bold">🛡️ Detección Real de Archivos (python-magic)</text>
+      <text x="14" y="38" fill="#94a3b8" font-size="10">Inspección de magic numbers binarios para prevenir spoofing de extensiones (.pdf, .docx, .zip)</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- COLUMN 3: PERSISTENCIA Y RECURSOS                              -->
+  <!-- ============================================================== -->
+  <g transform="translate(930, 140)">
+    <!-- Container Box -->
+    <rect x="0" y="0" width="300" height="650" rx="16" fill="url(#dataCardBg)" stroke="#4c1d95" stroke-width="1.5" filter="url(#shadowCard)" />
+    
+    <!-- Top Accent Bar -->
+    <rect x="0" y="0" width="300" height="6" rx="3" fill="url(#dbGrad)" />
+
+    <!-- Header -->
+    <g transform="translate(24, 28)">
+      <rect x="0" y="0" width="38" height="38" rx="8" fill="#a855f7" fill-opacity="0.15" stroke="#a855f7" stroke-width="1" />
+      <text x="19" y="24" fill="#c084fc" font-size="18" text-anchor="middle" font-weight="bold">💾</text>
+      
+      <text x="50" y="18" fill="#f1f5f9" font-size="16" font-weight="700">Persistencia</text>
+      <text x="50" y="34" fill="#c084fc" font-size="11" font-weight="600">Almacenamiento &amp; Datos</text>
+    </g>
+
+    <!-- 1. Database PostgreSQL -->
+    <g transform="translate(20, 85)">
+      <rect x="0" y="0" width="260" height="150" rx="10" fill="#13102b" stroke="#6d28d9" stroke-width="1.2" />
+      <text x="16" y="24" fill="#c084fc" font-size="13" font-weight="700">Base de Datos Principal</text>
+      <text x="16" y="44" fill="#e2e8f0" font-size="11">PostgreSQL 16 (Producción)</text>
+      <text x="16" y="60" fill="#94a3b8" font-size="10.5">SQLite 3 (Dev / Pytest CI)</text>
+      
+      <line x1="16" y1="72" x2="244" y2="72" stroke="#3b2d6b" stroke-width="1" />
+      
+      <text x="16" y="92" fill="#a78bfa" font-size="10.5">· Tablas Relacionales Integrales</text>
+      <text x="16" y="108" fill="#a78bfa" font-size="10.5">· Integridad referencial CASCADE / SET_NULL</text>
+      <text x="16" y="124" fill="#a78bfa" font-size="10.5">· Transacciones Atómicas (@transaction.atomic)</text>
+      <text x="16" y="140" fill="#a78bfa" font-size="10.5">· Índices en estado, usuario y fecha</text>
+    </g>
+
+    <!-- 2. Filesystem / Media Storage -->
+    <g transform="translate(20, 255)">
+      <rect x="0" y="0" width="260" height="120" rx="10" fill="#13102b" stroke="#4c1d95" stroke-width="1" />
+      <text x="16" y="24" fill="#f472b6" font-size="13" font-weight="700">Media Filesystem</text>
+      <text x="16" y="44" fill="#e2e8f0" font-size="11">Almacenamiento de Anexos</text>
+      <text x="16" y="62" fill="#94a3b8" font-size="10.5">· Rutas hashing aisladas por UUID</text>
+      <text x="16" y="78" fill="#94a3b8" font-size="10.5">· Certificados PDF firmados digitalmente</text>
+      <text x="16" y="94" fill="#94a3b8" font-size="10.5">· Validación estricta anti-traversal</text>
+      <text x="16" y="110" fill="#64748b" font-size="10">· Escalable a buckets S3 / Azure Blob</text>
+    </g>
+
+    <!-- 3. Docker Container Box -->
+    <g transform="translate(20, 395)">
+      <rect x="0" y="0" width="260" height="130" rx="10" fill="#13102b" stroke="#3730a3" stroke-width="1" />
+      <text x="16" y="24" fill="#818cf8" font-size="13" font-weight="700">Infraestructura &amp; Deploy</text>
+      <text x="16" y="44" fill="#e2e8f0" font-size="11">Docker &amp; Compose Ready</text>
+      <text x="16" y="64" fill="#94a3b8" font-size="10.5">· Contenedor Web: Gunicorn WSGI</text>
+      <text x="16" y="80" fill="#94a3b8" font-size="10.5">· Contenedor BD: postgres:16-alpine</text>
+      <text x="16" y="96" fill="#94a3b8" font-size="10.5">· Red virtual privada puente</text>
+      <text x="16" y="114" fill="#94a3b8" font-size="10.5">· Volúmenes persistentes en `/var/lib/`</text>
+    </g>
+
+    <!-- 4. Quality Gate Spec -->
+    <g transform="translate(20, 545)">
+      <rect x="0" y="0" width="260" height="78" rx="8" fill="#080b18" stroke="#3b2d6b" stroke-dasharray="3,3" />
+      <text x="14" y="22" fill="#a855f7" font-size="11" font-weight="bold">🛡️ Quality Gate &amp; Testing:</text>
+      <text x="14" y="40" fill="#94a3b8" font-size="10.5">· 57 Pruebas Pytest (Backend 100%)</text>
+      <text x="14" y="56" fill="#94a3b8" font-size="10.5">· 18 Pruebas Vitest (Frontend 100%)</text>
+      <text x="14" y="70" fill="#64748b" font-size="10">· 12 Pasos Simulación E2E Auditados</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- CONNECTING ARROWS & PROTOCOL LABELS                            -->
+  <!-- ============================================================== -->
+
+  <!-- Connection: Frontend -> Backend (Axios to Perimeter) -->
+  <g>
+    <!-- Cyan Arrow Line -->
+    <path d="M 390 490 L 470 490" fill="none" stroke="#00d8ff" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#arrowCyan)" />
+    
+    <!-- Protocol Badge -->
+    <rect x="398" y="456" width="64" height="22" rx="4" fill="#032540" stroke="#00d8ff" stroke-width="0.8" />
+    <text x="430" y="471" fill="#7dd3fc" font-size="9" text-anchor="middle" font-weight="bold">REST / JSON</text>
+    <text x="430" y="483" fill="#38bdf8" font-size="7.5" text-anchor="middle">Bearer JWT</text>
+  </g>
+
+  <!-- Connection: Backend -> Database (ORM to DB) -->
+  <g>
+    <!-- Purple Arrow Line -->
+    <path d="M 880 230 L 930 230" fill="none" stroke="#a855f7" stroke-width="2" marker-end="url(#arrowPurple)" />
+    
+    <!-- Protocol Badge -->
+    <rect x="888" y="206" width="34" height="18" rx="4" fill="#231338" stroke="#a855f7" stroke-width="0.8" />
+    <text x="905" y="219" fill="#d8b4fe" font-size="8.5" text-anchor="middle" font-weight="bold">ORM</text>
+  </g>
+
+  <!-- Connection: Backend -> Media Storage -->
+  <g>
+    <!-- Pink/Amber Arrow Line -->
+    <path d="M 880 320 L 930 320" fill="none" stroke="#f472b6" stroke-width="2" marker-end="url(#arrowAmber)" />
+    
+    <!-- Protocol Badge -->
+    <rect x="888" y="296" width="34" height="18" rx="4" fill="#331427" stroke="#f472b6" stroke-width="0.8" />
+    <text x="905" y="309" fill="#fbcfe8" font-size="8.5" text-anchor="middle" font-weight="bold">FILE</text>
+  </g>
+
+  <!-- Connection: Ingress to Dispatch inside Backend -->
+  <path d="M 655 178 L 655 190" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)" />
+  <path d="M 655 264 L 655 276" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)" />
+  <path d="M 655 392 L 655 404" fill="none" stroke="#34d399" stroke-width="2" marker-end="url(#arrowGreen)" />
+
+</svg>

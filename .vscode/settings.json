@@ -1,0 +1,14 @@
+{
+  "python.defaultInterpreterPath": "C:\\Users\\liba-\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+  "python.analysis.extraPaths": [
+    "C:\\Users\\liba-\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages",
+    "${workspaceFolder}/sigma-itm/backend",
+    "${workspaceFolder}/backend"
+  ],
+  "pyrefly.extraSearchPaths": [
+    "C:\\Users\\liba-\\AppData\\Local\\Programs\\Python\\Python314\\Lib\\site-packages",
+    "${workspaceFolder}/sigma-itm/backend",
+    "${workspaceFolder}/backend"
+  ],
+  "pyrefly.configPath": "${workspaceFolder}/pyrefly.toml"
+}
