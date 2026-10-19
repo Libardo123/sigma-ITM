@@ -253,12 +253,8 @@ export default function PanelEstudiante() {
   const [semestreEstudiante, setSemestreEstudiante] = useState("6° Semestre");
   const [telefonoEstudiante, setTelefonoEstudiante] = useState("300 123 4567");
 
-  // Documentos iniciales adjuntos en la radicación
-  const [documentosIniciales, setDocumentosIniciales] = useState([
-    { id: 1, nombre: "Propuesta de proyecto de grado", archivo: null },
-    { id: 2, nombre: "Certificado de paz y salvo académico", archivo: null },
-    { id: 3, nombre: "Carta de presentación al comité", archivo: null },
-  ]);
+  // Documentos iniciales adjuntos en la radicación (se discriminan dinámicamente según la modalidad)
+  const [documentosIniciales, setDocumentosIniciales] = useState([]);
   const [errorDocumentosIniciales, setErrorDocumentosIniciales] = useState("");
 
   // Gestor Documental CRUD en el Estudiante
@@ -347,6 +343,30 @@ export default function PanelEstudiante() {
       window.removeEventListener("focus", handleFocus);
     };
   }, []);
+
+  // Sincronizar automáticamente los cuadros de documentos requeridos según la modalidad seleccionada
+  useEffect(() => {
+    if (!modalidadId) {
+      setDocumentosIniciales([]);
+      return;
+    }
+    const modObj = modalidades.find(
+      (m) =>
+        String(m.id) === String(modalidadId) ||
+        m.nombre.toLowerCase().trim() === String(modalidadId).toLowerCase().trim()
+    );
+    const nombre = modObj ? modObj.nombre : modalidadId;
+    const info = obtenerInfoModalidad(nombre);
+    if (info?.documentosRequeridos && info.documentosRequeridos.length > 0) {
+      setDocumentosIniciales((prev) =>
+        info.documentosRequeridos.map((docNom, idx) => ({
+          id: idx + 1,
+          nombre: docNom,
+          archivo: prev[idx]?.archivo || null,
+        }))
+      );
+    }
+  }, [modalidadId, modalidades]);
 
   // Clasificación de procesos: activos vs históricos (finalizados / rechazados)
   const procesosActivos = postulaciones
@@ -892,7 +912,11 @@ export default function PanelEstudiante() {
     try {
       const faltanDocs = documentosIniciales.some(d => !d.archivo);
       if (faltanDocs) {
-        setError("Debes adjuntar los 3 documentos requeridos para radicar la propuesta.");
+        setError(
+          documentosIniciales.length > 0
+            ? `Debes adjuntar todos los ${documentosIniciales.length} documentos obligatorios requeridos para radicar tu propuesta en esta modalidad.`
+            : "Debes seleccionar una modalidad y adjuntar sus documentos obligatorios."
+        );
         setEnviando(false);
         return;
       }
@@ -903,7 +927,7 @@ export default function PanelEstudiante() {
       });
 
       if (nuevaPostulacion?.id) {
-        // Subir los 3 documentos uno por uno
+        // Subir los documentos requeridos uno por uno
         for (const doc of documentosIniciales) {
           if (doc.archivo) {
             const formData = new FormData();
@@ -933,11 +957,7 @@ export default function PanelEstudiante() {
       setModalidadId("");
       setTitulo("");
       setDescripcionPropuesta("");
-      setDocumentosIniciales([
-        { id: 1, nombre: "Propuesta de proyecto de grado", archivo: null },
-        { id: 2, nombre: "Certificado de paz y salvo académico", archivo: null },
-        { id: 3, nombre: "Carta de presentación al comité", archivo: null },
-      ]);
+      setDocumentosIniciales([]);
     } catch (err) {
       const detalle =
         err.response?.data?.detail ||
@@ -976,11 +996,13 @@ export default function PanelEstudiante() {
   // Si no tiene ningún proceso registrado o hace clic en "Postular a Nueva Opción de Grado"
   if (!proceso || mostrarNuevaPostulacion) {
     const modalidadSeleccionadaObj = modalidades.find(
-      (m) => String(m.id) === String(modalidadId)
+      (m) =>
+        String(m.id) === String(modalidadId) ||
+        m.nombre.toLowerCase().trim() === String(modalidadId).toLowerCase().trim()
     );
     const infoModalidad = modalidadSeleccionadaObj
       ? obtenerInfoModalidad(modalidadSeleccionadaObj.nombre)
-      : null;
+      : (modalidadId ? obtenerInfoModalidad(modalidadId) : null);
 
     return (
       <div className="max-w-4xl mx-auto space-y-6 mt-6">
@@ -1091,14 +1113,16 @@ export default function PanelEstudiante() {
                   (mod) => mod.nombre.toLowerCase().trim() === m.nombre.toLowerCase().trim()
                 );
                 const valorId = encontradaEnBD ? String(encontradaEnBD.id) : m.nombre;
-                const estaSeleccionada = String(modalidadId) === String(valorId);
+                const estaSeleccionada =
+                  String(modalidadId) === String(valorId) ||
+                  (infoModalidad && infoModalidad.nombre.toLowerCase().trim() === m.nombre.toLowerCase().trim());
 
                 return (
                   <button
                     key={m.nombre}
                     type="button"
                     onClick={() => {
-                      if (encontradaEnBD) setModalidadId(String(encontradaEnBD.id));
+                      setModalidadId(encontradaEnBD ? String(encontradaEnBD.id) : m.nombre);
                     }}
                     className={`p-3 rounded-xl border text-left text-xs transition-all flex flex-col justify-between ${
                       estaSeleccionada
@@ -1326,48 +1350,91 @@ export default function PanelEstudiante() {
 
           {/* BLOQUE 4: CARGA DE DOCUMENTOS INICIALES REQUERIDOS */}
           <div className="glass-panel border-t-4 border-teal-600 rounded-2xl p-6 sm:p-8 shadow-md space-y-4">
-            <h3 className="text-base font-black text-itm-blue flex items-center gap-2">
-              <span>📎</span> 4. Cargar Documentos de Soporte Obligatorios
-            </h3>
-            <p className="text-xs text-slate-500 font-medium">
-              Por reglamento, es obligatorio adjuntar estos 3 documentos iniciales para radicar tu propuesta de grado.
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h3 className="text-base font-black text-itm-blue flex items-center gap-2">
+                <span>📎</span> 4. Cargar Documentos de Soporte Obligatorios
+              </h3>
+              {documentosIniciales.length > 0 && (
+                <span
+                  className={`text-[11px] font-bold px-3 py-1 rounded-full border self-start sm:self-auto ${
+                    documentosIniciales.every((d) => d.archivo)
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                      : "bg-amber-50 text-amber-700 border-amber-300"
+                  }`}
+                >
+                  {documentosIniciales.filter((d) => d.archivo).length} de {documentosIniciales.length} archivos adjuntos
+                </span>
+              )}
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              {infoModalidad
+                ? `Por reglamento institucional del ITM, es obligatorio adjuntar estos ${documentosIniciales.length} documentos de soporte específicos para radicar tu propuesta en la modalidad "${infoModalidad.nombre}":`
+                : "Por reglamento institucional del ITM, es obligatorio adjuntar los documentos de soporte específicos según la modalidad de grado seleccionada."}
             </p>
 
-            {documentosIniciales.map((doc, index) => (
-              <div key={doc.id} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-200 ${index > 0 ? "mt-3" : ""}`}>
-                <div>
-                  <label htmlFor={`doc-nombre-${doc.id}`} className="block text-xs font-bold text-itm-blue uppercase tracking-wider mb-1.5">
-                    Nombre del Documento {doc.id}
-                  </label>
-                  <input
-                    id={`doc-nombre-${doc.id}`}
-                    type="text"
-                    value={doc.nombre}
-                    onChange={(e) => handleNombreDocInicialChange(e.target.value, doc.id)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-itm-purple"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor={`doc-archivo-${doc.id}`} className="block text-xs font-bold text-itm-blue uppercase tracking-wider mb-1.5">
-                    Archivo Adjunto <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id={`doc-archivo-${doc.id}`}
-                    type="file"
-                    accept=".pdf,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => handleArchivoInicialChange(e, doc.id)}
-                    className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-itm-blue/10 file:text-itm-blue hover:file:bg-itm-blue/20 transition-all cursor-pointer"
-                    required
-                  />
-                  {doc.archivo && (
-                    <p className="mt-2 text-emerald-700 font-bold text-[10px] bg-emerald-50 p-2 rounded-lg border border-emerald-200 flex items-center gap-1.5">
-                      <span>✓</span> {doc.archivo.name}
-                    </p>
-                  )}
-                </div>
+            {documentosIniciales.length === 0 ? (
+              <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-6 text-center space-y-2 my-2">
+                <span className="text-3xl block">📑</span>
+                <p className="text-xs font-bold text-amber-900">
+                  Selecciona primero tu modalidad de grado en el Bloque 2
+                </p>
+                <p className="text-[11px] text-amber-700 max-w-md mx-auto leading-relaxed">
+                  Al elegir cualquiera de las 10 opciones reglamentarias, este bloque cargará automáticamente los cuadros con los nombres oficiales de los documentos que debes adjuntar.
+                </p>
               </div>
-            ))}
+            ) : (
+              documentosIniciales.map((doc, index) => (
+                <div
+                  key={doc.id}
+                  className={`grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/70 p-4 rounded-xl border border-slate-200 ${
+                    index > 0 ? "mt-3" : ""
+                  }`}
+                >
+                  <div>
+                    <label
+                      htmlFor={`doc-nombre-${doc.id}`}
+                      className="block text-xs font-bold text-itm-blue uppercase tracking-wider mb-1.5 flex items-center justify-between"
+                    >
+                      <span>Nombre del Documento {doc.id}</span>
+                      <span className="text-[10px] font-semibold text-itm-purple bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                        Obligatorio
+                      </span>
+                    </label>
+                    <input
+                      id={`doc-nombre-${doc.id}`}
+                      type="text"
+                      value={doc.nombre}
+                      onChange={(e) => handleNombreDocInicialChange(e.target.value, doc.id)}
+                      className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-itm-purple shadow-2xs"
+                      placeholder="Nombre del documento requerido..."
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor={`doc-archivo-${doc.id}`}
+                      className="block text-xs font-bold text-itm-blue uppercase tracking-wider mb-1.5"
+                    >
+                      Archivo Adjunto <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id={`doc-archivo-${doc.id}`}
+                      type="file"
+                      accept=".pdf,.docx,.jpg,.jpeg,.png"
+                      onChange={(e) => handleArchivoInicialChange(e, doc.id)}
+                      className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-itm-blue/10 file:text-itm-blue hover:file:bg-itm-blue/20 transition-all cursor-pointer"
+                      required
+                    />
+                    {doc.archivo && (
+                      <p className="mt-2 text-emerald-700 font-bold text-[10px] bg-emerald-50 p-2 rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                        <span>✓</span> {doc.archivo.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
 
             {errorDocumentosIniciales && (
               <p role="alert" className="text-red-600 font-semibold text-xs border-l-2 border-red-500 pl-2 mt-4">
