@@ -1678,8 +1678,8 @@ export default function PanelAprobacion() {
                                 {doc.descripcion}
                               </p>
                             )}
-                            <p className="text-[11px] text-slate-400">
-                              {formatearFecha(doc.subido_en)}
+                            <p className="text-[11px] text-slate-500 font-medium">
+                              <strong>Radicación inicial (v1):</strong> {formatearFecha(doc.subido_en)}
                             </p>
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0 self-center">

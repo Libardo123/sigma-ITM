@@ -2034,9 +2034,22 @@ export default function PanelEstudiante() {
                             </div>
                           )}
 
-                          <p className="text-[11px] text-slate-400 mt-1 font-medium">
-                            Radicado el {formatearFecha(doc.subido_en)}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 mt-1.5 font-medium">
+                            <span className="flex items-center gap-1 text-slate-600">
+                              <span>📅</span>
+                              <span>
+                                <strong>Radicación inicial (v1):</strong> {formatearFecha(doc.subido_en)}
+                              </span>
+                            </span>
+                            {tieneHistorial && (
+                              <span className="flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                                <span>
+                                  <strong>Última actualización (v{maxVer}):</strong> {formatearFecha(fechaVigente)}
+                                </span>
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Acciones del Documento: Previsualizar, Descargar, Reemplazar y Eliminar */}
