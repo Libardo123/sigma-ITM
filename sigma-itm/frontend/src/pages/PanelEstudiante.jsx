@@ -1854,14 +1854,89 @@ export default function PanelEstudiante() {
                   {proceso.documentos.map((doc) => (
                     <li
                       key={doc.id}
-                      className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/60 transition-colors flex flex-col gap-3"
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base shrink-0">📄</span>
-                          <span
-                            className="text-sm font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate"
-                            title={`Haz clic para previsualizar: ${doc.nombre}`}
+                      {/* Cabecera del Documento: Información y Acciones Principales */}
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-2.5 border-b border-slate-200/60">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base shrink-0">📄</span>
+                            <span
+                              className="text-sm font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate"
+                              title={`Haz clic para previsualizar: ${doc.nombre}`}
+                              onClick={() =>
+                                setDocumentoAVisualizar({
+                                  nombre: doc.nombre,
+                                  archivo: doc.archivo,
+                                  descripcion: doc.descripcion,
+                                  fecha: formatearFecha(doc.subido_en),
+                                })
+                              }
+                            >
+                              {doc.nombre}
+                            </span>
+                          </div>
+
+                          {/* Descripción editable */}
+                          {docEnEdicionId === doc.id ? (
+                            <div className="mt-2 flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={descripcionEnEdicion}
+                                onChange={(e) => setDescripcionEnEdicion(e.target.value)}
+                                placeholder="Escribe la descripción o notas del documento..."
+                                className="flex-1 bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleGuardarDescripcion(doc.id)}
+                                disabled={guardandoDescripcion}
+                                className="bg-itm-blue text-white text-xs px-3 py-1 rounded font-bold hover:bg-itm-blue-dark transition-colors"
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDocEnEdicionId(null);
+                                  setDescripcionEnEdicion("");
+                                }}
+                                className="bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded font-bold hover:bg-slate-300 transition-colors"
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="mt-1 flex items-center gap-2 text-xs">
+                              {doc.descripcion ? (
+                                <span className="text-slate-600 italic">
+                                  "{doc.descripcion}"
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 italic">Sin descripción</span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDocEnEdicionId(doc.id);
+                                  setDescripcionEnEdicion(doc.descripcion || "");
+                                }}
+                                className="text-[11px] text-itm-blue hover:text-itm-purple font-semibold hover:underline"
+                              >
+                                ✏️ Editar descripción
+                              </button>
+                            </div>
+                          )}
+
+                          <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                            Radicado el {formatearFecha(doc.subido_en)}
+                          </p>
+                        </div>
+
+                        {/* Acciones del Documento: Previsualizar, Descargar, Reemplazar y Eliminar */}
+                        <div className="flex items-center gap-1.5 shrink-0 self-start">
+                          <button
+                            type="button"
                             onClick={() =>
                               setDocumentoAVisualizar({
                                 nombre: doc.nombre,
@@ -1870,145 +1945,88 @@ export default function PanelEstudiante() {
                                 fecha: formatearFecha(doc.subido_en),
                               })
                             }
+                            aria-label={`Previsualizar documento ${doc.nombre}`}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-xs cursor-pointer"
+                            title="Previsualizar documento en pantalla sin descargar"
                           >
-                            {doc.nombre}
-                          </span>
+                            <span>👁️</span>
+                            <span>Ver</span>
+                          </button>
+                          <a
+                            href={obtenerUrlDocumento(doc.archivo)}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Descargar o ver documento ${doc.nombre}`}
+                            title="Descargar archivo a tu dispositivo"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-xs cursor-pointer"
+                          >
+                            <span>⬇️</span>
+                            <span>Descargar</span>
+                          </a>
+
+                          {proceso.estado !== "FINALIZADO" && proceso.estado !== "RECHAZADO" && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setModalReemplazarDoc({
+                                    abierto: true,
+                                    docId: doc.id,
+                                    docNombre: doc.nombre,
+                                    descripcion: doc.descripcion || "",
+                                    motivo: "",
+                                    versionActual: doc.version_actual || 1,
+                                    archivo: null,
+                                    enviando: false,
+                                    error: "",
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-all shadow-xs cursor-pointer"
+                                title="Reemplazar o sustituir este archivo por una nueva versión o si te equivocaste al subirlo"
+                              >
+                                <span>🔄</span>
+                                <span>Reemplazar</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleEliminarDocumento(doc.id, doc.nombre)}
+                                className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 transition-all shadow-xs cursor-pointer"
+                                title="Eliminar este archivo del expediente"
+                              >
+                                🗑️
+                              </button>
+                            </>
+                          )}
                         </div>
+                      </div>
 
-                        {/* Descripción editable */}
-                        {docEnEdicionId === doc.id ? (
-                          <div className="mt-2 flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={descripcionEnEdicion}
-                              onChange={(e) => setDescripcionEnEdicion(e.target.value)}
-                              placeholder="Escribe la descripción o notas del documento..."
-                              className="flex-1 bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleGuardarDescripcion(doc.id)}
-                              disabled={guardandoDescripcion}
-                              className="bg-itm-blue text-white text-xs px-3 py-1 rounded font-bold hover:bg-itm-blue-dark transition-colors"
-                            >
-                              Guardar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDocEnEdicionId(null);
-                                setDescripcionEnEdicion("");
-                              }}
-                              className="bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded font-bold hover:bg-slate-300 transition-colors"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="mt-1 flex items-center gap-2 text-xs">
-                            {doc.descripcion ? (
-                              <span className="text-slate-600 italic">
-                                "{doc.descripcion}"
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 italic">Sin descripción</span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setDocEnEdicionId(doc.id);
-                                setDescripcionEnEdicion(doc.descripcion || "");
-                              }}
-                              className="text-[11px] text-itm-blue hover:text-itm-purple font-semibold hover:underline"
-                            >
-                              ✏️ Editar descripción
-                            </button>
-                          </div>
-                        )}
-
-                        <p className="text-[11px] text-slate-400 mt-1 font-medium">
-                          Radicado el {formatearFecha(doc.subido_en)}
-                        </p>
-
-                        {/* Control de Versiones Documentales (Historial v1, v2, v3...) */}
+                      {/* Control de Versiones Documentales (Historial v1, v2, v3... a ancho completo) */}
+                      <div className="w-full">
                         <HistorialVersionesDocumento
                           documento={doc}
                           onPrevisualizar={setDocumentoAVisualizar}
                           obtenerUrl={obtenerUrlDocumento}
                           formatearFecha={formatearFecha}
-                        />
-                      </div>
-
-                      {/* Acciones del Documento: Previsualizar, Descargar y Eliminar */}
-                      <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDocumentoAVisualizar({
-                              nombre: doc.nombre,
-                              archivo: doc.archivo,
-                              descripcion: doc.descripcion,
-                              fecha: formatearFecha(doc.subido_en),
+                          onReemplazar={() =>
+                            setModalReemplazarDoc({
+                              abierto: true,
+                              docId: doc.id,
+                              docNombre: doc.nombre,
+                              descripcion: doc.descripcion || "",
+                              motivo: "",
+                              versionActual: doc.version_actual || 1,
+                              archivo: null,
+                              enviando: false,
+                              error: "",
                             })
                           }
-                          aria-label={`Previsualizar documento ${doc.nombre}`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-xs cursor-pointer"
-                          title="Previsualizar documento en pantalla sin descargar"
-                        >
-                          <span>👁️</span>
-                          <span>Ver</span>
-                        </button>
-                        <a
-                          href={obtenerUrlDocumento(doc.archivo)}
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Descargar o ver documento ${doc.nombre}`}
-                          title="Descargar archivo a tu dispositivo"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
-                          }}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-xs cursor-pointer"
-                        >
-                          <span>⬇️</span>
-                          <span className="hidden sm:inline">Descargar</span>
-                        </a>
-
-                        {proceso.estado !== "FINALIZADO" && proceso.estado !== "RECHAZADO" && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setModalReemplazarDoc({
-                                  abierto: true,
-                                  docId: doc.id,
-                                  docNombre: doc.nombre,
-                                  descripcion: doc.descripcion || "",
-                                  motivo: "",
-                                  versionActual: doc.version_actual || 1,
-                                  archivo: null,
-                                  enviando: false,
-                                  error: "",
-                                })
-                              }
-                              className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-all shadow-xs cursor-pointer"
-                              title="Reemplazar o sustituir este archivo por una nueva versión"
-                            >
-                              <span>🔄</span>
-                              <span className="hidden sm:inline">Reemplazar</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleEliminarDocumento(doc.id, doc.nombre)}
-                              className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 transition-all shadow-xs cursor-pointer"
-                              title="Eliminar este archivo del expediente"
-                            >
-                              🗑️
-                            </button>
-                          </>
-                        )}
+                        />
                       </div>
                     </li>
                   ))}
