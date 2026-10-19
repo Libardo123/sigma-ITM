@@ -273,6 +273,32 @@ export default function PanelAprobacion() {
     motivo: "",
   });
 
+  // Estados para Modales de Envío de Correo (Mailto / Outlook 365 / Gmail)
+  const [modalAvisoCorreccion, setModalAvisoCorreccion] = useState({
+    abierto: false,
+    estudianteEmail: "",
+    estudianteNombre: "",
+    tituloProyecto: "",
+    observacion: "",
+  });
+
+  const [modalAvisoAsignacion, setModalAvisoAsignacion] = useState({
+    abierto: false,
+    asesorEmail: "",
+    asesorNombre: "",
+    estudianteNombre: "",
+    tituloProyecto: "",
+    directriz: "",
+  });
+
+  const [modalAvisoSustentacion, setModalAvisoSustentacion] = useState({
+    abierto: false,
+    estudianteEmail: "",
+    estudianteNombre: "",
+    tituloProyecto: "",
+    mensaje: "",
+  });
+
   const cargarSolicitudesUsuarios = async () => {
     const esAdmin = usuario?.rol === "ADMIN" || usuario?.rol === "ADMINISTRADOR";
     if (!esAdmin) return;
@@ -411,6 +437,7 @@ export default function PanelAprobacion() {
       procesoId: proceso.id,
       tituloProyecto: proceso.titulo_proyecto,
       estudianteNombre: proceso.estudiante_nombre,
+      estudianteEmail: proceso.estudiante_email || (proceso.estudiante ? `${proceso.estudiante}@correo.itm.edu.co` : ""),
       esEdicion,
       observacion: esEdicion
         ? proceso.observacion_correccion || ""
@@ -429,6 +456,7 @@ export default function PanelAprobacion() {
       procesoId: null,
       tituloProyecto: "",
       estudianteNombre: "",
+      estudianteEmail: "",
       esEdicion: false,
       observacion: "",
       archivo: null,
@@ -475,7 +503,17 @@ export default function PanelAprobacion() {
           ? "Observación de corrección y archivo de retroalimentación actualizados exitosamente."
           : "Observación de corrección y archivo de retroalimentación enviados al estudiante con éxito."
       );
+      const emailEst = modalCorreccion.estudianteEmail;
+      const nomEst = modalCorreccion.estudianteNombre;
+      const titProy = modalCorreccion.tituloProyecto;
       cerrarModalCorreccion();
+      setModalAvisoCorreccion({
+        abierto: true,
+        estudianteEmail: emailEst,
+        estudianteNombre: nomEst,
+        tituloProyecto: titProy,
+        observacion: obs,
+      });
       await cargar();
     } catch (err) {
       const detalle =
@@ -522,6 +560,7 @@ export default function PanelAprobacion() {
       procesoId: proceso.id,
       tituloProyecto: proceso.titulo_proyecto,
       estudianteNombre: proceso.estudiante_nombre,
+      estudianteEmail: proceso.estudiante_email || (proceso.estudiante ? `${proceso.estudiante}@correo.itm.edu.co` : ""),
       mensaje: esEdicion ? proceso.mensaje_sustentacion || "" : "",
       archivo: null,
       archivoActual: proceso.archivo_sustentacion || null,
@@ -538,6 +577,7 @@ export default function PanelAprobacion() {
       procesoId: null,
       tituloProyecto: "",
       estudianteNombre: "",
+      estudianteEmail: "",
       mensaje: "",
       archivo: null,
       archivoActual: null,
@@ -591,7 +631,17 @@ export default function PanelAprobacion() {
       setMensajeExito(
         modalSustentacion.esEdicion ? "Notificación de sustentación actualizada con éxito." : "Notificación de sustentación enviada al estudiante con éxito."
       );
+      const emailEst = modalSustentacion.estudianteEmail;
+      const nomEst = modalSustentacion.estudianteNombre;
+      const titProy = modalSustentacion.tituloProyecto;
       cerrarModalSustentacion();
+      setModalAvisoSustentacion({
+        abierto: true,
+        estudianteEmail: emailEst,
+        estudianteNombre: nomEst,
+        tituloProyecto: titProy,
+        mensaje: msg,
+      });
       await cargar();
     } catch (err) {
       const detalle =
@@ -810,7 +860,25 @@ export default function PanelAprobacion() {
       setMensajeExito(
         modalEnviarAsesor.esEdicion ? "Directriz al asesor modificada con éxito." : "Proyecto enviado al asesor con éxito."
       );
+      const asesorIdSel = modalEnviarAsesor.asesorId;
+      const asesorObj = asesores.find((a) => String(a.id) === String(asesorIdSel));
+      const asesorNom = asesorObj
+        ? `${asesorObj.first_name || ""} ${asesorObj.last_name || ""}`.trim() || asesorObj.username
+        : "Docente Asesor";
+      const asesorCorreo = asesorObj?.email || (asesorObj?.username ? `${asesorObj.username}@correo.itm.edu.co` : "");
+      const nomEst = modalEnviarAsesor.estudianteNombre;
+      const titProy = modalEnviarAsesor.tituloProyecto;
+      const directrizTexto = modalEnviarAsesor.mensaje?.trim() || "";
+
       cerrarModalEnviarAsesor();
+      setModalAvisoAsignacion({
+        abierto: true,
+        asesorEmail: asesorCorreo,
+        asesorNombre: asesorNom,
+        estudianteNombre: nomEst,
+        tituloProyecto: titProy,
+        directriz: directrizTexto,
+      });
       await cargar();
     } catch (err) {
       const detalle =
@@ -837,7 +905,22 @@ export default function PanelAprobacion() {
         mensaje: mensajesAsignacion[procesoId] || "",
       });
       setMensajeExito("Asesor asignado formalmente con éxito.");
+      const proceso = procesos.find((p) => p.id === procesoId);
+      const asesorObj = asesores.find((a) => String(a.id) === String(asesorId));
+      const asesorNom = asesorObj
+        ? `${asesorObj.first_name || ""} ${asesorObj.last_name || ""}`.trim() || asesorObj.username
+        : "Docente Asesor";
+      const asesorCorreo = asesorObj?.email || (asesorObj?.username ? `${asesorObj.username}@correo.itm.edu.co` : "");
+      const directrizTexto = mensajesAsignacion[procesoId] || "";
       setMensajesAsignacion((prev) => ({ ...prev, [procesoId]: "" }));
+      setModalAvisoAsignacion({
+        abierto: true,
+        asesorEmail: asesorCorreo,
+        asesorNombre: asesorNom,
+        estudianteNombre: proceso?.estudiante_nombre || "Estudiante",
+        tituloProyecto: proceso?.titulo_proyecto || "Proyecto de Grado",
+        directriz: directrizTexto,
+      });
       await cargar();
     } catch (e) {
       const err = e.response?.data?.detail || "No se pudo asignar el asesor seleccionado.";
@@ -3701,6 +3784,306 @@ export default function PanelAprobacion() {
           </div>
         );
       })()}
+
+      {/* MODAL CORRECCIÓN: NOTIFICACIÓN POR CORREO AL ESTUDIANTE */}
+      {modalAvisoCorreccion.abierto && (() => {
+        const email = modalAvisoCorreccion.estudianteEmail || "estudiante@correo.itm.edu.co";
+        const nombre = modalAvisoCorreccion.estudianteNombre || "Estudiante";
+        const proyecto = modalAvisoCorreccion.tituloProyecto || "Proyecto de Grado";
+        const obs = modalAvisoCorreccion.observacion || "";
+        const asunto = encodeURIComponent(`Solicitud de Correcciones - Trabajo de Grado: "${proyecto.slice(0, 45)}${proyecto.length > 45 ? "..." : ""}" - SIGMA ITM`);
+        const cuerpo = encodeURIComponent(
+          `Hola ${nombre},\n\nTe informamos que se han registrado observaciones y solicitud de correcciones para tu trabajo de grado en la plataforma SIGMA ITM.\n\nProyecto:\n"${proyecto}"\n\nObservaciones del Evaluador:\n"${obs}"\n\nPor favor ingresa a la plataforma SIGMA ITM (${window.location.origin}/estudiante) en la sección de Subsanación para consultar los detalles completos, descargar el archivo de retroalimentación adjunto (si aplica) y cargar la versión corregida del documento.\n\nAtentamente,\nDocente Evaluador / Comité de Trabajos de Grado\nFacultad de Ingenierías - ITM`
+        );
+        const mailtoUrl = `mailto:${email}?subject=${asunto}&body=${cuerpo}`;
+        const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(email)}&subject=${asunto}&body=${cuerpo}`;
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${asunto}&body=${cuerpo}`;
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="bg-gradient-to-r from-amber-600 to-yellow-600 text-white p-6 text-center">
+                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border border-white/30">
+                  📝
+                </div>
+                <h3 className="text-xl font-black">¡Correcciones Solicitadas!</h3>
+                <p className="text-xs text-amber-100 mt-1">
+                  Se ha pasado el proyecto a estado de <strong>SUBSANACIÓN</strong> en el sistema.
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-700 space-y-1">
+                  <p><strong>Estudiante:</strong> {nombre} ({email})</p>
+                  <p><strong>Proyecto:</strong> {proyecto}</p>
+                  <div className="mt-2 pt-2 border-t border-slate-200/80">
+                    <p className="font-bold text-slate-600 text-[11px] uppercase tracking-wider">Observación enviada:</p>
+                    <p className="text-slate-800 italic line-clamp-3 bg-white p-2 rounded-lg border border-slate-200 mt-1">
+                      "{obs}"
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2">
+                    Puedes notificarle inmediatamente a su correo institucional con 1 solo clic:
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <a
+                    href={mailtoUrl}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-itm-blue hover:bg-itm-blue-dark text-white font-black text-xs rounded-xl shadow-sm transition-all"
+                  >
+                    <span>✉️</span>
+                    <span>Abrir Cliente de Correo Predeterminado (Mailto)</span>
+                  </a>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={outlookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                    >
+                      <span>📧</span>
+                      <span>Outlook 365 ITM</span>
+                    </a>
+                    <a
+                      href={gmailUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                    >
+                      <span>📮</span>
+                      <span>Gmail Web</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 text-right">
+                  <button
+                    onClick={() =>
+                      setModalAvisoCorreccion({
+                        abierto: false,
+                        estudianteEmail: "",
+                        estudianteNombre: "",
+                        tituloProyecto: "",
+                        observacion: "",
+                      })
+                    }
+                    className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* MODAL ASIGNACIÓN: NOTIFICACIÓN POR CORREO AL ASESOR */}
+      {modalAvisoAsignacion.abierto && (() => {
+        const email = modalAvisoAsignacion.asesorEmail || "asesor@correo.itm.edu.co";
+        const nombreAsesor = modalAvisoAsignacion.asesorNombre || "Docente Asesor";
+        const nombreEst = modalAvisoAsignacion.estudianteNombre || "Estudiante";
+        const proyecto = modalAvisoAsignacion.tituloProyecto || "Proyecto de Grado";
+        const directriz = modalAvisoAsignacion.directriz || "";
+        const asunto = encodeURIComponent(`Asignación como Docente Asesor - Proyecto: "${proyecto.slice(0, 45)}${proyecto.length > 45 ? "..." : ""}" - SIGMA ITM`);
+        const cuerpo = encodeURIComponent(
+          `Estimado(a) Profesor(a) ${nombreAsesor},\n\nLe informamos que ha sido asignado(a) como Docente Asesor del siguiente trabajo de grado en la plataforma SIGMA ITM:\n\nProyecto:\n"${proyecto}"\nEstudiante a cargo: ${nombreEst}\n\n${directriz ? `Directriz / Mensaje de Asignación:\n"${directriz}"\n\n` : ""}Puede ingresar a la plataforma SIGMA ITM (${window.location.origin}/aprobacion) para consultar la ficha técnica, los documentos radicados y acompañar al estudiante en sus avances y entregables durante la Etapa de Ejecución.\n\nAtentamente,\nAdministración / Comité de Trabajos de Grado\nFacultad de Ingenierías - ITM`
+        );
+        const mailtoUrl = `mailto:${email}?subject=${asunto}&body=${cuerpo}`;
+        const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(email)}&subject=${asunto}&body=${cuerpo}`;
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${asunto}&body=${cuerpo}`;
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="bg-gradient-to-r from-itm-blue to-itm-purple text-white p-6 text-center">
+                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border border-white/30">
+                  👨‍🏫
+                </div>
+                <h3 className="text-xl font-black">¡Asesor Asignado con Éxito!</h3>
+                <p className="text-xs text-indigo-100 mt-1">
+                  El proyecto ha sido vinculado al docente y pasa a <strong>EJECUCIÓN</strong>.
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-700 space-y-1">
+                  <p><strong>Docente Asesor:</strong> {nombreAsesor} ({email})</p>
+                  <p><strong>Estudiante a cargo:</strong> {nombreEst}</p>
+                  <p><strong>Proyecto:</strong> {proyecto}</p>
+                  {directriz && (
+                    <div className="mt-2 pt-2 border-t border-slate-200/80">
+                      <p className="font-bold text-slate-600 text-[11px] uppercase tracking-wider">Directriz enviada:</p>
+                      <p className="text-slate-800 italic line-clamp-3 bg-white p-2 rounded-lg border border-slate-200 mt-1">
+                        "{directriz}"
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-slate-500 mt-2">
+                    Puedes avisarle inmediatamente a su correo institucional con 1 solo clic:
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <a
+                    href={mailtoUrl}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-itm-blue hover:bg-itm-blue-dark text-white font-black text-xs rounded-xl shadow-sm transition-all"
+                  >
+                    <span>✉️</span>
+                    <span>Abrir Cliente de Correo Predeterminado (Mailto)</span>
+                  </a>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={outlookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                    >
+                      <span>📧</span>
+                      <span>Outlook 365 ITM</span>
+                    </a>
+                    <a
+                      href={gmailUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                    >
+                      <span>📮</span>
+                      <span>Gmail Web</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 text-right">
+                  <button
+                    onClick={() =>
+                      setModalAvisoAsignacion({
+                        abierto: false,
+                        asesorEmail: "",
+                        asesorNombre: "",
+                        estudianteNombre: "",
+                        tituloProyecto: "",
+                        directriz: "",
+                      })
+                    }
+                    className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* MODAL SUSTENTACIÓN: NOTIFICACIÓN POR CORREO AL ESTUDIANTE */}
+      {modalAvisoSustentacion.abierto && (() => {
+        const email = modalAvisoSustentacion.estudianteEmail || "estudiante@correo.itm.edu.co";
+        const nombre = modalAvisoSustentacion.estudianteNombre || "Estudiante";
+        const proyecto = modalAvisoSustentacion.tituloProyecto || "Proyecto de Grado";
+        const msg = modalAvisoSustentacion.mensaje || "";
+        const asunto = encodeURIComponent(`Citación a Sustentación - Trabajo de Grado: "${proyecto.slice(0, 45)}${proyecto.length > 45 ? "..." : ""}" - SIGMA ITM`);
+        const cuerpo = encodeURIComponent(
+          `Hola ${nombre},\n\nTu Docente Asesor ha registrado formalmente la citación para la sustentación de tu trabajo de grado en la plataforma SIGMA ITM.\n\nProyecto:\n"${proyecto}"\n\nDetalles y Directrices de la Sustentación:\n"${msg}"\n\nPor favor consulta la plataforma SIGMA ITM (${window.location.origin}/estudiante) en la sección de Sustentación para verificar el cronograma y descargar cualquier documento de apoyo adjunto. Recuerda preparar tu sustentación con suficiente tiempo.\n\nAtentamente,\nDocente Asesor / Jurados Evaluadores\nFacultad de Ingenierías - ITM`
+        );
+        const mailtoUrl = `mailto:${email}?subject=${asunto}&body=${cuerpo}`;
+        const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(email)}&subject=${asunto}&body=${cuerpo}`;
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${asunto}&body=${cuerpo}`;
+
+        return (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-itm-purple text-white p-6 text-center">
+                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border border-white/30">
+                  📅
+                </div>
+                <h3 className="text-xl font-black">¡Citación a Sustentación Registrada!</h3>
+                <p className="text-xs text-sky-100 mt-1">
+                  Se ha registrado la fecha y detalles de sustentación en el sistema.
+                </p>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-700 space-y-1">
+                  <p><strong>Estudiante:</strong> {nombre} ({email})</p>
+                  <p><strong>Proyecto:</strong> {proyecto}</p>
+                  <div className="mt-2 pt-2 border-t border-slate-200/80">
+                    <p className="font-bold text-slate-600 text-[11px] uppercase tracking-wider">Detalles de la citación:</p>
+                    <p className="text-slate-800 italic line-clamp-3 bg-white p-2 rounded-lg border border-slate-200 mt-1">
+                      "{msg}"
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2">
+                    Puedes notificarle inmediatamente a su correo institucional con 1 solo clic:
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <a
+                    href={mailtoUrl}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-itm-blue hover:bg-itm-blue-dark text-white font-black text-xs rounded-xl shadow-sm transition-all"
+                  >
+                    <span>✉️</span>
+                    <span>Abrir Cliente de Correo Predeterminado (Mailto)</span>
+                  </a>
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={outlookUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                    >
+                      <span>📧</span>
+                      <span>Outlook 365 ITM</span>
+                    </a>
+                    <a
+                      href={gmailUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                    >
+                      <span>📮</span>
+                      <span>Gmail Web</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 text-right">
+                  <button
+                    onClick={() =>
+                      setModalAvisoSustentacion({
+                        abierto: false,
+                        estudianteEmail: "",
+                        estudianteNombre: "",
+                        tituloProyecto: "",
+                        mensaje: "",
+                      })
+                    }
+                    className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Modal de Previsualización y Descarga de Documentos */}
       <ModalVisorDocumento
         documento={documentoAVisualizar}
