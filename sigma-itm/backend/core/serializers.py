@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from .models import Documento, HistorialEstado, Modalidad, Postulacion, Usuario
+from .models import Documento, HistorialEstado, Modalidad, Postulacion, Usuario, VersionDocumento
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
@@ -93,6 +93,41 @@ class ModalidadSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "creada_en"]
 
 
+class VersionDocumentoSerializer(serializers.ModelSerializer):
+    """Serializador para cada versión histórica de un documento."""
+
+    archivo_url = serializers.SerializerMethodField()
+    creado_por_nombre = serializers.SerializerMethodField()
+
+    class Meta:  # type: ignore
+        model = VersionDocumento
+        fields = [
+            "id",
+            "numero_version",
+            "archivo",
+            "archivo_url",
+            "descripcion",
+            "motivo",
+            "creado_en",
+            "creado_por",
+            "creado_por_nombre",
+        ]
+        read_only_fields = ["id", "creado_en"]
+
+    def get_archivo_url(self, obj: VersionDocumento) -> str | None:
+        if obj.archivo:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.archivo.url)
+            return obj.archivo.url
+        return None
+
+    def get_creado_por_nombre(self, obj: VersionDocumento) -> str:
+        if obj.creado_por:
+            return obj.creado_por.get_full_name() or obj.creado_por.username
+        return "Estudiante"
+
+
 class DocumentoSerializer(serializers.ModelSerializer):
     """Serializador para documentos adjuntos a postulaciones.
 
@@ -101,6 +136,7 @@ class DocumentoSerializer(serializers.ModelSerializer):
     - Tamaño máximo: 10 MB.
     - La verificación usa el tipo MIME real del archivo (magic bytes),
       no la extensión del nombre, para prevenir bypass por renombrado.
+    - Trazabilidad forense con historial completo de versiones (v1, v2, v3...).
     """
 
     # Tipos MIME permitidos y su descripción legible para el mensaje de error.
@@ -112,10 +148,61 @@ class DocumentoSerializer(serializers.ModelSerializer):
     }
     _TAMANO_MAXIMO_BYTES: int = 10 * 1024 * 1024  # 10 MB
 
+    versiones = serializers.SerializerMethodField()
+    version_actual = serializers.SerializerMethodField()
+    total_versiones = serializers.SerializerMethodField()
+
     class Meta:  # type: ignore
         model = Documento
-        fields = ["id", "postulacion", "nombre", "descripcion", "archivo", "subido_en"]
-        read_only_fields = ["id", "subido_en"]
+        fields = [
+            "id",
+            "postulacion",
+            "nombre",
+            "descripcion",
+            "archivo",
+            "subido_en",
+            "versiones",
+            "version_actual",
+            "total_versiones",
+        ]
+        read_only_fields = [
+            "id",
+            "subido_en",
+            "versiones",
+            "version_actual",
+            "total_versiones",
+        ]
+
+    def get_versiones(self, obj: Documento) -> list[dict]:
+        versiones_qs = list(obj.versiones.all().order_by("-numero_version"))
+        if not versiones_qs and obj.archivo:
+            request = self.context.get("request")
+            url = request.build_absolute_uri(obj.archivo.url) if request else obj.archivo.url
+            nombre_creador = "Estudiante"
+            if getattr(obj, "postulacion", None) and getattr(obj.postulacion, "estudiante", None):
+                nombre_creador = obj.postulacion.estudiante.get_full_name() or obj.postulacion.estudiante.username
+            return [
+                {
+                    "id": f"v1-{obj.id}",
+                    "numero_version": 1,
+                    "archivo": obj.archivo.url,
+                    "archivo_url": url,
+                    "descripcion": obj.descripcion or "Documento original radicado",
+                    "motivo": "Radicación inicial en expediente",
+                    "creado_en": obj.subido_en,
+                    "creado_por": None,
+                    "creado_por_nombre": nombre_creador,
+                }
+            ]
+        return VersionDocumentoSerializer(versiones_qs, many=True, context=self.context).data
+
+    def get_version_actual(self, obj: Documento) -> int:
+        ultima = obj.versiones.order_by("-numero_version").first()
+        return ultima.numero_version if ultima else 1
+
+    def get_total_versiones(self, obj: Documento) -> int:
+        cnt = obj.versiones.count()
+        return cnt if cnt > 0 else 1
 
     def validate_archivo(self, archivo):
         """Valida tamaño y tipo MIME real del archivo subido.

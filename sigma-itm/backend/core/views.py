@@ -27,6 +27,7 @@ from .models import (
     Rol,
     TransicionInvalida,
     Usuario,
+    VersionDocumento,
 )
 from .permissions import (
     EsAdmin,
@@ -818,7 +819,17 @@ class DocumentoViewSet(viewsets.ModelViewSet):
         usuario: Usuario = self.request.user  # type: ignore
         if usuario.es_estudiante and postulacion.estudiante_id != usuario.id:
             raise PermissionDenied("Solo puedes adjuntar documentos a tus propias postulaciones.")
-        serializer.save()
+        doc = serializer.save()
+        if doc.archivo:
+            motivo = self.request.data.get("motivo") or doc.descripcion or "Radicación inicial del documento"
+            VersionDocumento.objects.create(
+                documento=doc,
+                numero_version=1,
+                archivo=doc.archivo,
+                descripcion=doc.descripcion or "",
+                motivo=motivo,
+                creado_por=usuario,
+            )
 
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -830,7 +841,38 @@ class DocumentoViewSet(viewsets.ModelViewSet):
             raise PermissionDenied(
                 "No es posible modificar documentos de un proceso culminado o cerrado definitivamente."
             )
-        serializer.save()
+
+        nuevo_archivo = serializer.validated_data.get("archivo")
+        if nuevo_archivo:
+            # Asegurar preservación de v1 si el documento no tenía versiones registradas
+            if instance.versiones.count() == 0 and instance.archivo:
+                VersionDocumento.objects.create(
+                    documento=instance,
+                    numero_version=1,
+                    archivo=instance.archivo,
+                    descripcion=instance.descripcion or "Versión inicial",
+                    motivo="Radicación original en expediente",
+                    creado_en=instance.subido_en,
+                    creado_por=instance.postulacion.estudiante,
+                )
+
+            doc_actualizado = serializer.save()
+            siguiente_num = doc_actualizado.versiones.count() + 1
+            motivo = (
+                self.request.data.get("motivo")
+                or self.request.data.get("descripcion")
+                or "Reemplazo de documento subsanado"
+            )
+            VersionDocumento.objects.create(
+                documento=doc_actualizado,
+                numero_version=siguiente_num,
+                archivo=doc_actualizado.archivo,
+                descripcion=doc_actualizado.descripcion or "",
+                motivo=motivo,
+                creado_por=usuario,
+            )
+        else:
+            serializer.save()
 
     def perform_destroy(self, instance: Documento):
         usuario: Usuario = self.request.user  # type: ignore

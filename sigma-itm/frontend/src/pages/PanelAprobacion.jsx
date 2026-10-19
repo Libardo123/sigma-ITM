@@ -3,6 +3,7 @@ import api from "../api/client";
 import EstadoBadge from "../components/EstadoBadge";
 import FichaModalidadProyecto from "../components/FichaModalidadProyecto";
 import ModalVisorDocumento, { forzarDescargaArchivo } from "../components/ModalVisorDocumento";
+import HistorialVersionesDocumento from "../components/HistorialVersionesDocumento";
 import { useAuth } from "../context/AuthContext";
 
 import { MODALIDADES_OFICIALES } from "../constants/modalidades";
@@ -1606,68 +1607,78 @@ export default function PanelAprobacion() {
                     {p.documentos.map((doc) => (
                       <li
                         key={doc.id}
-                        className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 hover:bg-slate-100 hover:border-slate-300 transition-colors"
+                        className="flex flex-col p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-colors"
                       >
-                        <div className="min-w-0 pr-2">
-                          <p
-                            className="text-xs font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate flex items-center gap-1"
-                            title={`Haz clic para previsualizar: ${doc.nombre}`}
-                            onClick={() =>
-                              setDocumentoAVisualizar({
-                                nombre: doc.nombre,
-                                archivo: doc.archivo,
-                                descripcion: doc.descripcion,
-                                fecha: formatearFecha(doc.subido_en),
-                              })
-                            }
-                          >
-                            <span>📄</span>
-                            <span className="truncate">{doc.nombre}</span>
-                          </p>
-                          {doc.descripcion && (
-                            <p className="text-[11px] text-slate-600 truncate italic">
-                              {doc.descripcion}
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 pr-2">
+                            <p
+                              className="text-xs font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate flex items-center gap-1"
+                              title={`Haz clic para previsualizar: ${doc.nombre}`}
+                              onClick={() =>
+                                setDocumentoAVisualizar({
+                                  nombre: doc.nombre,
+                                  archivo: doc.archivo,
+                                  descripcion: doc.descripcion,
+                                  fecha: formatearFecha(doc.subido_en),
+                                })
+                              }
+                            >
+                              <span>📄</span>
+                              <span className="truncate">{doc.nombre}</span>
                             </p>
-                          )}
-                          <p className="text-[11px] text-slate-400">
-                            {formatearFecha(doc.subido_en)}
-                          </p>
+                            {doc.descripcion && (
+                              <p className="text-[11px] text-slate-600 truncate italic">
+                                {doc.descripcion}
+                              </p>
+                            )}
+                            <p className="text-[11px] text-slate-400">
+                              {formatearFecha(doc.subido_en)}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 self-center">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDocumentoAVisualizar({
+                                  nombre: doc.nombre,
+                                  archivo: doc.archivo,
+                                  descripcion: doc.descripcion,
+                                  fecha: formatearFecha(doc.subido_en),
+                                })
+                              }
+                              aria-label={`Previsualizar documento ${doc.nombre}`}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-2xs cursor-pointer"
+                              title="Previsualizar documento en pantalla sin descargar"
+                            >
+                              <span>👁️</span>
+                              <span>Ver</span>
+                            </button>
+                            <a
+                              href={obtenerUrlDocumento(doc.archivo)}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`Descargar o ver documento ${doc.nombre}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-2xs cursor-pointer"
+                              title="Descargar archivo a tu dispositivo"
+                            >
+                              <span>⬇️</span>
+                              <span>Descargar</span>
+                            </a>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0 self-center">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setDocumentoAVisualizar({
-                                nombre: doc.nombre,
-                                archivo: doc.archivo,
-                                descripcion: doc.descripcion,
-                                fecha: formatearFecha(doc.subido_en),
-                              })
-                            }
-                            aria-label={`Previsualizar documento ${doc.nombre}`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-2xs cursor-pointer"
-                            title="Previsualizar documento en pantalla sin descargar"
-                          >
-                            <span>👁️</span>
-                            <span>Ver</span>
-                          </button>
-                          <a
-                            href={obtenerUrlDocumento(doc.archivo)}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Descargar o ver documento ${doc.nombre}`}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
-                            }}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-2xs cursor-pointer"
-                            title="Descargar archivo a tu dispositivo"
-                          >
-                            <span>⬇️</span>
-                            <span>Descargar</span>
-                          </a>
-                        </div>
+
+                        {/* Control de Versiones Documentales (Historial v1, v2, v3...) */}
+                        <HistorialVersionesDocumento
+                          documento={doc}
+                          onPrevisualizar={setDocumentoAVisualizar}
+                          obtenerUrl={obtenerUrlDocumento}
+                          formatearFecha={formatearFecha}
+                        />
                       </li>
                     ))}
                   </ul>

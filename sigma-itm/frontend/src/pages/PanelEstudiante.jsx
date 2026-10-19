@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
 import EstadoBadge from "../components/EstadoBadge";
 import ModalVisorDocumento, { forzarDescargaArchivo } from "../components/ModalVisorDocumento";
+import HistorialVersionesDocumento from "../components/HistorialVersionesDocumento";
 import Timeline from "../components/Timeline";
 import { useAuth } from "../context/AuthContext";
 import { MODALIDADES_OFICIALES, obtenerInfoModalidad } from "../constants/modalidades";
@@ -556,6 +557,8 @@ export default function PanelEstudiante() {
     docId: null,
     docNombre: "",
     descripcion: "",
+    motivo: "",
+    versionActual: 1,
     archivo: null,
     enviando: false,
     error: "",
@@ -632,6 +635,9 @@ export default function PanelEstudiante() {
     if (modalReemplazarDoc.descripcion !== undefined) {
       formData.append("descripcion", modalReemplazarDoc.descripcion.trim());
     }
+    if (modalReemplazarDoc.motivo !== undefined) {
+      formData.append("motivo", modalReemplazarDoc.motivo.trim());
+    }
 
     try {
       await api.patch(`/documentos/${modalReemplazarDoc.docId}/`, formData, {
@@ -642,6 +648,8 @@ export default function PanelEstudiante() {
         docId: null,
         docNombre: "",
         descripcion: "",
+        motivo: "",
+        versionActual: 1,
         archivo: null,
         enviando: false,
         error: "",
@@ -1921,6 +1929,14 @@ export default function PanelEstudiante() {
                         <p className="text-[11px] text-slate-400 mt-1 font-medium">
                           Radicado el {formatearFecha(doc.subido_en)}
                         </p>
+
+                        {/* Control de Versiones Documentales (Historial v1, v2, v3...) */}
+                        <HistorialVersionesDocumento
+                          documento={doc}
+                          onPrevisualizar={setDocumentoAVisualizar}
+                          obtenerUrl={obtenerUrlDocumento}
+                          formatearFecha={formatearFecha}
+                        />
                       </div>
 
                       {/* Acciones del Documento: Previsualizar, Descargar y Eliminar */}
@@ -1969,6 +1985,8 @@ export default function PanelEstudiante() {
                                   docId: doc.id,
                                   docNombre: doc.nombre,
                                   descripcion: doc.descripcion || "",
+                                  motivo: "",
+                                  versionActual: doc.version_actual || 1,
                                   archivo: null,
                                   enviando: false,
                                   error: "",
@@ -2814,7 +2832,7 @@ export default function PanelEstudiante() {
             <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 text-white p-6 relative">
               <div className="flex items-center justify-between gap-3 mb-2">
                 <span className="inline-block bg-white/10 text-blue-200 border border-white/20 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
-                  ACTUALIZACIÓN DE ARCHIVO
+                  Sustitución de Versión • v{(modalReemplazarDoc.versionActual || 1) + 1}
                 </span>
                 <button
                   type="button"
@@ -2831,14 +2849,19 @@ export default function PanelEstudiante() {
                 Reemplazar Documento
               </h3>
               <p className="text-xs text-slate-300 mt-1 truncate">
-                Documento actual: <strong>{modalReemplazarDoc.docNombre}</strong>
+                Documento: <strong>{modalReemplazarDoc.docNombre}</strong> (Versión vigente actual: v{modalReemplazarDoc.versionActual || 1})
               </p>
             </div>
 
             <div className="p-6 space-y-4">
-              <p className="text-xs text-slate-600 leading-relaxed bg-blue-50/70 p-3.5 rounded-xl border border-blue-200/60">
-                Selecciona el nuevo archivo (PDF, Word o imagen) que sustituirá de forma inmediata la versión anterior en tu expediente institucional. Puedes además actualizar la descripción o notas explicativas del archivo.
-              </p>
+              <div className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-200/80 text-xs text-slate-700 space-y-1">
+                <p className="font-bold text-blue-950 flex items-center gap-1">
+                  <span>🛡️</span> Control de Versiones Documentales Activo
+                </p>
+                <p className="text-slate-600 leading-relaxed text-[11px]">
+                  Al cargar este nuevo archivo se creará la <strong>Versión v{(modalReemplazarDoc.versionActual || 1) + 1}</strong>. La versión anterior (v{modalReemplazarDoc.versionActual || 1}) permanecerá archivada en el historial inmutable para consulta, trazabilidad y cotejo del docente evaluador.
+                </p>
+              </div>
 
               <form onSubmit={handleEnviarReemplazoDoc} className="space-y-4">
                 <div>
@@ -2861,14 +2884,36 @@ export default function PanelEstudiante() {
 
                 <div>
                   <label
+                    htmlFor="modal-reemplazar-motivo"
+                    className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5"
+                  >
+                    Motivo o Justificación del Cambio (Requerido para Trazabilidad):
+                  </label>
+                  <textarea
+                    id="modal-reemplazar-motivo"
+                    rows={3}
+                    value={modalReemplazarDoc.motivo}
+                    onChange={(e) =>
+                      setModalReemplazarDoc((prev) => ({
+                        ...prev,
+                        motivo: e.target.value,
+                      }))
+                    }
+                    placeholder="Explica qué correcciones o ajustes realizaste en este archivo (ej: Se incorporaron las correcciones metodológicas solicitadas por el asesor)..."
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 leading-relaxed resize-y shadow-inner"
+                  />
+                </div>
+
+                <div>
+                  <label
                     htmlFor="modal-reemplazar-descripcion"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5"
                   >
-                    Descripción o Nota de la Nueva Versión (Opcional):
+                    Notas Complementarias de la Versión (Opcional):
                   </label>
                   <textarea
                     id="modal-reemplazar-descripcion"
-                    rows={4}
+                    rows={2}
                     value={modalReemplazarDoc.descripcion}
                     onChange={(e) =>
                       setModalReemplazarDoc((prev) => ({
@@ -2876,8 +2921,8 @@ export default function PanelEstudiante() {
                         descripcion: e.target.value,
                       }))
                     }
-                    placeholder="Indica qué cambios o mejoras incluye esta versión (ej: Se corrigieron las observaciones de la sección 3)..."
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 min-h-[110px] leading-relaxed resize-y shadow-inner"
+                    placeholder="Notas adicionales sobre este documento..."
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 leading-relaxed resize-y shadow-inner"
                   />
                 </div>
 

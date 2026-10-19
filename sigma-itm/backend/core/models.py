@@ -606,6 +606,41 @@ class Documento(models.Model):
         return f"{self.nombre} ({self.postulacion_id})"
 
 
+class VersionDocumento(models.Model):
+    """Historial inmutable de versiones de un documento (v1, v2, v3...).
+    Garantiza trazabilidad forense completa de todos los cambios documentales
+    sin posibilidad de pérdidas.
+    """
+
+    documento = models.ForeignKey(
+        Documento, related_name="versiones", on_delete=models.CASCADE
+    )
+    numero_version = models.PositiveIntegerField(default=1)
+    archivo = models.FileField(upload_to="documentos/versiones/%Y/%m/")
+    descripcion = models.TextField(blank=True, default="")
+    motivo = models.TextField(
+        blank=True,
+        default="",
+        help_text="Motivo o justificación del cambio o reemplazo de versión.",
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="versiones_documentos",
+    )
+
+    class Meta:
+        ordering = ["-numero_version"]
+        verbose_name = "Versión de documento"
+        verbose_name_plural = "Versiones de documentos"
+
+    def __str__(self) -> str:
+        return f"{self.documento.nombre} - v{self.numero_version}"
+
+
 class HistorialEstado(models.Model):
     """Registro inmutable de auditoría: cada evento relevante en el ciclo
     de vida de una Postulación queda registrado aquí.
