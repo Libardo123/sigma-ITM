@@ -986,33 +986,28 @@ export default function PanelAprobacion() {
 
   // Filtrado de proyectos para la pestaña de Historial
   const proyectosFiltradosHistorial = procesos.filter((p) => {
-    const coincideTexto =
-      !busquedaHistorial ||
-      (p.estudiante_cedula &&
-        p.estudiante_cedula
-          .toLowerCase()
-          .includes(busquedaHistorial.toLowerCase())) ||
-      (p.estudiante_nombre &&
-        p.estudiante_nombre
-          .toLowerCase()
-          .includes(busquedaHistorial.toLowerCase())) ||
-      (p.titulo_proyecto &&
-        p.titulo_proyecto
-          .toLowerCase()
-          .includes(busquedaHistorial.toLowerCase())) ||
-      (p.modalidad_nombre &&
-        p.modalidad_nombre
-          .toLowerCase()
-          .includes(busquedaHistorial.toLowerCase())) ||
-      (p.asesor_nombre &&
-        p.asesor_nombre
-          .toLowerCase()
-          .includes(busquedaHistorial.toLowerCase()));
+    if (filtroModalidadHistorial && p.modalidad_nombre !== filtroModalidadHistorial) {
+      return false;
+    }
+    if (!busquedaHistorial || !busquedaHistorial.trim()) {
+      return true;
+    }
+    const bHist = String(busquedaHistorial).trim().toLowerCase();
+    const cedula = String(p.estudiante_cedula || "").toLowerCase();
+    const nombre = String(p.estudiante_nombre || "").toLowerCase();
+    const email = String(p.estudiante_email || "").toLowerCase();
+    const titulo = String(p.titulo_proyecto || "").toLowerCase();
+    const modalidad = String(p.modalidad_nombre || "").toLowerCase();
+    const asesor = String(p.asesor_nombre || "").toLowerCase();
 
-    const coincideModalidad =
-      !filtroModalidadHistorial || p.modalidad_nombre === filtroModalidadHistorial;
-
-    return coincideTexto && coincideModalidad;
+    return (
+      cedula.includes(bHist) ||
+      nombre.includes(bHist) ||
+      email.includes(bHist) ||
+      titulo.includes(bHist) ||
+      modalidad.includes(bHist) ||
+      asesor.includes(bHist)
+    );
   });
 
   // Modalidad actualmente seleccionada para ver su ficha
@@ -1313,18 +1308,18 @@ export default function PanelAprobacion() {
               if (filtroEstado && p.estado !== filtroEstado) return false;
 
               if (busquedaGeneral && busquedaGeneral.trim()) {
-                const term = busquedaGeneral.trim().toLowerCase();
-                const cedula = (p.estudiante_cedula || "").toLowerCase();
-                const nombre = (p.estudiante_nombre || "").toLowerCase();
-                const username = (p.estudiante || "").toLowerCase();
-                const titulo = (p.titulo_proyecto || "").toLowerCase();
-                const modalidad = (p.modalidad_nombre || "").toLowerCase();
-                const asesor = (p.asesor_nombre || "").toLowerCase();
+                const term = String(busquedaGeneral).trim().toLowerCase();
+                const cedula = String(p.estudiante_cedula || "").toLowerCase();
+                const nombre = String(p.estudiante_nombre || "").toLowerCase();
+                const email = String(p.estudiante_email || "").toLowerCase();
+                const titulo = String(p.titulo_proyecto || "").toLowerCase();
+                const modalidad = String(p.modalidad_nombre || "").toLowerCase();
+                const asesor = String(p.asesor_nombre || "").toLowerCase();
 
                 const coincide =
                   cedula.includes(term) ||
                   nombre.includes(term) ||
-                  username.includes(term) ||
+                  email.includes(term) ||
                   titulo.includes(term) ||
                   modalidad.includes(term) ||
                   asesor.includes(term);
@@ -1384,9 +1379,9 @@ export default function PanelAprobacion() {
                         <span
                           className={`text-xs px-2.5 py-0.5 rounded font-mono font-bold border transition-all ${
                             busquedaGeneral &&
-                            p.estudiante_cedula
+                            String(p.estudiante_cedula)
                               .toLowerCase()
-                              .includes(busquedaGeneral.trim().toLowerCase())
+                              .includes(String(busquedaGeneral).trim().toLowerCase())
                               ? "bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/50"
                               : "bg-slate-100 text-slate-700 border-slate-200"
                           }`}
