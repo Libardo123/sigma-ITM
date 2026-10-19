@@ -147,14 +147,14 @@ export default function PaginaVisorDocumento() {
   return (
     <div className="min-h-screen h-screen flex flex-col bg-slate-100 font-sans text-slate-800">
       {/* Barra Superior Institucional */}
-      <header className="px-5 py-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-xs">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-itm-purple/10 text-itm-purple flex items-center justify-center text-lg font-bold">
+      <header className="px-5 py-3 bg-white border-b border-slate-200 flex items-center justify-between gap-4 shrink-0 shadow-xs">
+        <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
+          <div className="w-9 h-9 rounded-lg bg-itm-purple/10 text-itm-purple flex items-center justify-center text-lg font-bold shrink-0">
             {esPdf ? "📄" : esImagen ? "🖼️" : esWord ? "📘" : esExcel ? "📊" : "📁"}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-slate-900 truncate max-w-xl" title={nombre}>
+              <h1 className="text-sm sm:text-base font-bold text-slate-900 truncate" title={nombre}>
                 {nombre}
               </h1>
               {extension && (
@@ -163,7 +163,7 @@ export default function PaginaVisorDocumento() {
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 truncate">
+            <p className="text-xs text-slate-500 truncate" title={descripcion || ""}>
               SIGMA ITM · Visor Institucional de Documentos
               {fecha ? ` · Subido el ${fecha}` : ""}
               {descripcion ? ` · ${descripcion}` : ""}
@@ -171,8 +171,8 @@ export default function PaginaVisorDocumento() {
           </div>
         </div>
 
-        {/* Acciones */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Acciones SIEMPRE a la derecha */}
+        <div className="flex items-center gap-2 shrink-0 ml-auto justify-end">
           <button
             type="button"
             onClick={() => forzarDescargaArchivo(blobUrl || urlAbsoluta, nombre)}

@@ -289,14 +289,14 @@ export default function ModalVisorDocumento({ documento, onCerrar }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Barra Superior de Controles y Metadatos */}
-        <header className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
             <span className="text-2xl shrink-0" aria-hidden="true">
               {esPdf ? "📄" : esImagen ? "🖼️" : esWord ? "📘" : esExcel ? "📊" : "📁"}
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate max-w-md" title={documento.nombre}>
+                <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate" title={documento.nombre}>
                   {documento.nombre || "Documento adjunto"}
                 </h3>
                 {extension && (
@@ -305,15 +305,15 @@ export default function ModalVisorDocumento({ documento, onCerrar }) {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 truncate">
+              <p className="text-xs text-slate-500 truncate" title={documento.descripcion || ""}>
                 {documento.fecha ? `Subido el ${documento.fecha}` : "Expediente institucional SIGMA ITM"}
                 {documento.descripcion ? ` · ${documento.descripcion}` : ""}
               </p>
             </div>
           </div>
 
-          {/* Acciones principales */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Acciones principales SIEMPRE alineadas a la derecha */}
+          <div className="flex items-center gap-2 shrink-0 ml-auto justify-end">
             <button
               type="button"
               onClick={() => forzarDescargaArchivo(blobUrl || urlAbsoluta, documento.nombre)}
