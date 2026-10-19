@@ -1896,7 +1896,19 @@ export default function PanelEstudiante() {
               </h4>
               {proceso.documentos && proceso.documentos.length > 0 ? (
                 <ul className="space-y-2.5">
-                  {proceso.documentos.map((doc) => (
+                  {proceso.documentos.map((doc) => {
+                    const versArr = doc.versiones || [];
+                    const maxVer = versArr.length > 0
+                      ? Math.max(...versArr.map((v) => v.numero_version))
+                      : (doc.version_actual || 1);
+                    const siguienteNum = maxVer + 1;
+                    const versionVigenteObj = versArr.find((v) => v.numero_version === maxVer) || versArr[0] || null;
+                    const archivoVigente = versionVigenteObj?.archivo || doc.archivo;
+                    const fechaVigente = versionVigenteObj?.creado_en || doc.subido_en;
+                    const motivoVigente = versionVigenteObj?.motivo || doc.descripcion;
+                    const tieneHistorial = versArr.length > 1;
+
+                    return (
                     <li
                       key={doc.id}
                       className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/60 transition-colors flex flex-col gap-3"
@@ -1904,21 +1916,34 @@ export default function PanelEstudiante() {
                       {/* Cabecera del Documento: Información y Acciones Principales */}
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-2.5 border-b border-slate-200/60">
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base shrink-0">📄</span>
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="text-lg shrink-0">📄</span>
                             <span
-                              className="text-sm font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate"
-                              title={`Haz clic para previsualizar: ${doc.nombre}`}
+                              className="text-base font-black text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate"
+                              title={`Haz clic para previsualizar la versión vigente (v${maxVer}): ${doc.nombre}`}
                               onClick={() =>
                                 setDocumentoAVisualizar({
-                                  nombre: doc.nombre,
-                                  archivo: doc.archivo,
-                                  descripcion: doc.descripcion,
-                                  fecha: formatearFecha(doc.subido_en),
+                                  nombre: `${doc.nombre} (v${maxVer} - Vigente)`,
+                                  archivo: archivoVigente,
+                                  descripcion: motivoVigente,
+                                  fecha: formatearFecha(fechaVigente),
                                 })
                               }
                             >
                               {doc.nombre}
+                            </span>
+
+                            {/* Badge Destacado de Versión Vigente */}
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs border ${
+                                tieneHistorial
+                                  ? "bg-emerald-100 text-emerald-800 border-emerald-300 ring-2 ring-emerald-200/50"
+                                  : "bg-slate-100 text-slate-700 border-slate-300"
+                              }`}
+                              title={`Versión activa y vigente en el expediente: v${maxVer}`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${tieneHistorial ? "bg-emerald-600 animate-pulse" : "bg-slate-400"}`}></span>
+                              <span>v{maxVer} • {tieneHistorial ? "Actual Vigente" : "Original"}</span>
                             </span>
                           </div>
 
@@ -1973,9 +1998,14 @@ export default function PanelEstudiante() {
                             </div>
                           )}
 
-                          <p className="text-[11px] text-slate-400 mt-1 font-medium">
-                            Radicado el {formatearFecha(doc.subido_en)}
-                          </p>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1 font-medium flex-wrap">
+                            <span>Radicado el {formatearFecha(doc.subido_en)}</span>
+                            {tieneHistorial && (
+                              <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                ✓ v{maxVer} vigente actualizada el {formatearFecha(fechaVigente)}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Acciones del Documento: Previsualizar, Descargar, Reemplazar y Eliminar */}
@@ -1984,34 +2014,34 @@ export default function PanelEstudiante() {
                             type="button"
                             onClick={() =>
                               setDocumentoAVisualizar({
-                                nombre: doc.nombre,
-                                archivo: doc.archivo,
-                                descripcion: doc.descripcion,
-                                fecha: formatearFecha(doc.subido_en),
+                                nombre: `${doc.nombre} (v${maxVer} - Vigente)`,
+                                archivo: archivoVigente,
+                                descripcion: motivoVigente,
+                                fecha: formatearFecha(fechaVigente),
                               })
                             }
-                            aria-label={`Previsualizar documento ${doc.nombre}`}
+                            aria-label={`Previsualizar versión vigente v${maxVer} de ${doc.nombre}`}
                             className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-xs cursor-pointer"
-                            title="Previsualizar documento en pantalla sin descargar"
+                            title={`Previsualizar la versión vigente (v${maxVer}) en pantalla`}
                           >
                             <span>👁️</span>
-                            <span>Ver</span>
+                            <span>Ver (v{maxVer})</span>
                           </button>
                           <a
-                            href={obtenerUrlDocumento(doc.archivo)}
+                            href={obtenerUrlDocumento(archivoVigente)}
                             download
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`Descargar o ver documento ${doc.nombre}`}
-                            title="Descargar archivo a tu dispositivo"
+                            aria-label={`Descargar versión vigente v${maxVer} de ${doc.nombre}`}
+                            title={`Descargar archivo de la versión vigente (v${maxVer})`}
                             onClick={(e) => {
                               e.preventDefault();
-                              forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
+                              forzarDescargaArchivo(obtenerUrlDocumento(archivoVigente), `${doc.nombre}_v${maxVer}`);
                             }}
                             className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-xs cursor-pointer"
                           >
                             <span>⬇️</span>
-                            <span>Descargar</span>
+                            <span>Descargar (v{maxVer})</span>
                           </a>
 
                           {proceso.estado !== "FINALIZADO" && proceso.estado !== "RECHAZADO" && (
@@ -2109,7 +2139,8 @@ export default function PanelEstudiante() {
                         />
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               ) : (
                 <div className="p-6 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-slate-500 text-xs text-center">
