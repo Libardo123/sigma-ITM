@@ -885,6 +885,116 @@ class DocumentoViewSet(viewsets.ModelViewSet):
             )
         instance.delete()
 
+    @action(detail=True, methods=["post"], url_path="reemplazar-version")
+    def reemplazar_version(self, request, pk=None):
+        """Permite sustituir o corregir el archivo de una versión específica
+        en el historial si el estudiante o evaluador se equivocó al subirlo."""
+        documento: Documento = self.get_object()
+        usuario: Usuario = request.user  # type: ignore
+
+        if (
+            usuario.es_estudiante
+            and documento.postulacion.estado in (EstadoProceso.FINALIZADO, EstadoProceso.RECHAZADO)
+        ):
+            raise PermissionDenied(
+                "No es posible modificar versiones de un proceso culminado o cerrado definitivamente."
+            )
+
+        nuevo_archivo = request.FILES.get("archivo")
+        if not nuevo_archivo:
+            return Response(
+                {"detail": "Debes adjuntar el nuevo archivo para corregir la versión."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        version_id = request.data.get("version_id")
+        numero_version = request.data.get("numero_version")
+
+        version = None
+        if version_id:
+            version = documento.versiones.filter(id=version_id).first()
+        elif numero_version:
+            version = documento.versiones.filter(numero_version=numero_version).first()
+
+        motivo = request.data.get("motivo") or "Corrección de archivo subido erróneamente"
+
+        if version:
+            version.archivo = nuevo_archivo
+            version.motivo = motivo
+            if request.data.get("descripcion"):
+                version.descripcion = request.data.get("descripcion")
+            version.save()
+        else:
+            # Si no existe, crear la versión con el número solicitado
+            num = int(numero_version) if numero_version else (documento.versiones.count() + 1)
+            version = VersionDocumento.objects.create(
+                documento=documento,
+                numero_version=num,
+                archivo=nuevo_archivo,
+                motivo=motivo,
+                creado_por=usuario,
+            )
+
+        # Si esta versión es la más reciente (o igual a la versión actual), actualizar el archivo principal
+        ultima_version = documento.versiones.order_by("-numero_version").first()
+        if ultima_version and ultima_version.id == version.id:
+            documento.archivo = version.archivo
+            documento.save(update_fields=["archivo"])
+
+        serializer = self.get_serializer(documento)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["delete", "post"], url_path="eliminar-version")
+    def eliminar_version(self, request, pk=None):
+        """Elimina una versión específica del historial. Si era la vigente,
+        actualiza el archivo del documento a la versión inmediata anterior."""
+        documento: Documento = self.get_object()
+        usuario: Usuario = request.user  # type: ignore
+
+        if (
+            usuario.es_estudiante
+            and documento.postulacion.estado in (EstadoProceso.FINALIZADO, EstadoProceso.RECHAZADO)
+        ):
+            raise PermissionDenied(
+                "No es posible eliminar versiones de un proceso culminado o cerrado definitivamente."
+            )
+
+        version_id = request.data.get("version_id")
+        numero_version = request.data.get("numero_version")
+
+        version = None
+        if version_id:
+            version = documento.versiones.filter(id=version_id).first()
+        elif numero_version:
+            version = documento.versiones.filter(numero_version=numero_version).first()
+
+        if not version:
+            return Response(
+                {"detail": "No se encontró la versión especificada para este documento."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        total_versiones = documento.versiones.count()
+        if total_versiones <= 1:
+            # Si es la única versión, eliminamos el documento completo
+            documento.delete()
+            return Response(
+                {"detail": "Se eliminó el documento completo por no contar con versiones previas.", "documento_eliminado": True},
+                status=status.HTTP_200_OK,
+            )
+
+        era_la_ultima = documento.versiones.order_by("-numero_version").first().id == version.id
+        version.delete()
+
+        if era_la_ultima:
+            siguiente_vigente = documento.versiones.order_by("-numero_version").first()
+            if siguiente_vigente:
+                documento.archivo = siguiente_vigente.archivo
+                documento.save(update_fields=["archivo"])
+
+        serializer = self.get_serializer(documento)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class AnaliticaView(viewsets.ViewSet):
     """GET /api/analitica/ — métricas para Asesores, Comité y Decanatura.

@@ -559,6 +559,7 @@ export default function PanelEstudiante() {
     descripcion: "",
     motivo: "",
     versionActual: 1,
+    versionTarget: null, // null = cargar nueva versión (ej: v4). Objeto { id, numero_version } = sustituir archivo de esa versión específica
     archivo: null,
     enviando: false,
     error: "",
@@ -632,17 +633,37 @@ export default function PanelEstudiante() {
 
     const formData = new FormData();
     formData.append("archivo", modalReemplazarDoc.archivo);
-    if (modalReemplazarDoc.descripcion !== undefined) {
-      formData.append("descripcion", modalReemplazarDoc.descripcion.trim());
-    }
-    if (modalReemplazarDoc.motivo !== undefined) {
-      formData.append("motivo", modalReemplazarDoc.motivo.trim());
-    }
 
     try {
-      await api.patch(`/documentos/${modalReemplazarDoc.docId}/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      if (modalReemplazarDoc.versionTarget) {
+        // Modo: Sustituir archivo de una versión específica (corrección de error al subir)
+        formData.append("version_id", modalReemplazarDoc.versionTarget.id || "");
+        formData.append("numero_version", modalReemplazarDoc.versionTarget.numero_version);
+        const motivoEnvio =
+          modalReemplazarDoc.motivo.trim() ||
+          `Corrección de archivo en versión v${modalReemplazarDoc.versionTarget.numero_version}`;
+        formData.append("motivo", motivoEnvio);
+        if (modalReemplazarDoc.descripcion) {
+          formData.append("descripcion", modalReemplazarDoc.descripcion.trim());
+        }
+
+        await api.post(`/documentos/${modalReemplazarDoc.docId}/reemplazar-version/`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        // Modo: Cargar nueva versión incremental (ej: v4, v5, etc.)
+        if (modalReemplazarDoc.descripcion !== undefined) {
+          formData.append("descripcion", modalReemplazarDoc.descripcion.trim());
+        }
+        if (modalReemplazarDoc.motivo !== undefined) {
+          formData.append("motivo", modalReemplazarDoc.motivo.trim());
+        }
+
+        await api.patch(`/documentos/${modalReemplazarDoc.docId}/`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
       setModalReemplazarDoc({
         abierto: false,
         docId: null,
@@ -650,6 +671,7 @@ export default function PanelEstudiante() {
         descripcion: "",
         motivo: "",
         versionActual: 1,
+        versionTarget: null,
         archivo: null,
         enviando: false,
         error: "",
@@ -662,12 +684,35 @@ export default function PanelEstudiante() {
       const detalle =
         err.response?.data?.archivo?.[0] ||
         err.response?.data?.detail ||
-        "No se pudo reemplazar el archivo. Por favor intenta de nuevo.";
+        "No se pudo guardar el archivo. Por favor intenta de nuevo.";
       setModalReemplazarDoc((prev) => ({
         ...prev,
         enviando: false,
         error: detalle,
       }));
+    }
+  };
+
+  const handleEliminarVersion = async (docId, version) => {
+    const confirmacion = window.confirm(
+      `¿Estás seguro de eliminar la versión v${version.numero_version} de este documento? Esta acción eliminará dicho registro del expediente.`
+    );
+    if (!confirmacion) return;
+
+    try {
+      await api.post(`/documentos/${docId}/eliminar-version/`, {
+        version_id: version.id,
+        numero_version: version.numero_version,
+      });
+      await cargar();
+      if (proceso?.id) {
+        await cargarValidacion(proceso.id);
+      }
+    } catch (err) {
+      const detalle =
+        err.response?.data?.detail ||
+        "No se pudo eliminar la versión del documento. Por favor intenta de nuevo.";
+      alert(detalle);
     }
   };
 
@@ -1971,27 +2016,38 @@ export default function PanelEstudiante() {
 
                           {proceso.estado !== "FINALIZADO" && proceso.estado !== "RECHAZADO" && (
                             <>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setModalReemplazarDoc({
-                                    abierto: true,
-                                    docId: doc.id,
-                                    docNombre: doc.nombre,
-                                    descripcion: doc.descripcion || "",
-                                    motivo: "",
-                                    versionActual: doc.version_actual || 1,
-                                    archivo: null,
-                                    enviando: false,
-                                    error: "",
-                                  })
-                                }
-                                className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-all shadow-xs cursor-pointer"
-                                title="Reemplazar o sustituir este archivo por una nueva versión o si te equivocaste al subirlo"
-                              >
-                                <span>🔄</span>
-                                <span>Reemplazar</span>
-                              </button>
+                              {(() => {
+                                const versArr = doc.versiones || [];
+                                const maxVer = versArr.length > 0
+                                  ? Math.max(...versArr.map((v) => v.numero_version))
+                                  : (doc.version_actual || 1);
+                                const siguienteNum = maxVer + 1;
+
+                                return (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setModalReemplazarDoc({
+                                        abierto: true,
+                                        docId: doc.id,
+                                        docNombre: doc.nombre,
+                                        descripcion: doc.descripcion || "",
+                                        motivo: "",
+                                        versionActual: maxVer,
+                                        versionTarget: null, // Cargar nueva versión incremental (v4)
+                                        archivo: null,
+                                        enviando: false,
+                                        error: "",
+                                      })
+                                    }
+                                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-all shadow-xs cursor-pointer"
+                                    title={`Subir una nueva versión (v${siguienteNum}) de este documento`}
+                                  >
+                                    <span>🔄</span>
+                                    <span>Cargar nueva versión (v{siguienteNum})</span>
+                                  </button>
+                                );
+                              })()}
 
                               <button
                                 type="button"
@@ -2013,19 +2069,43 @@ export default function PanelEstudiante() {
                           onPrevisualizar={setDocumentoAVisualizar}
                           obtenerUrl={obtenerUrlDocumento}
                           formatearFecha={formatearFecha}
-                          onReemplazar={() =>
+                          onReemplazar={() => {
+                            const versArr = doc.versiones || [];
+                            const maxVer = versArr.length > 0
+                              ? Math.max(...versArr.map((v) => v.numero_version))
+                              : (doc.version_actual || 1);
                             setModalReemplazarDoc({
                               abierto: true,
                               docId: doc.id,
                               docNombre: doc.nombre,
                               descripcion: doc.descripcion || "",
                               motivo: "",
-                              versionActual: doc.version_actual || 1,
+                              versionActual: maxVer,
+                              versionTarget: null, // Cargar nueva versión (ej: v4)
                               archivo: null,
                               enviando: false,
                               error: "",
-                            })
-                          }
+                            });
+                          }}
+                          onReemplazarVersion={(ver) => {
+                            const versArr = doc.versiones || [];
+                            const maxVer = versArr.length > 0
+                              ? Math.max(...versArr.map((v) => v.numero_version))
+                              : (doc.version_actual || 1);
+                            setModalReemplazarDoc({
+                              abierto: true,
+                              docId: doc.id,
+                              docNombre: doc.nombre,
+                              descripcion: ver.descripcion || doc.descripcion || "",
+                              motivo: ver.motivo || "",
+                              versionActual: maxVer,
+                              versionTarget: ver, // Sustituir archivo de esta versión específica
+                              archivo: null,
+                              enviando: false,
+                              error: "",
+                            });
+                          }}
+                          onEliminarVersion={(ver) => handleEliminarVersion(doc.id, ver)}
                         />
                       </div>
                     </li>
@@ -2839,7 +2919,7 @@ export default function PanelEstudiante() {
         </div>
       )}
 
-      {/* MODAL PARA REEMPLAZAR ARCHIVO DE DOCUMENTO */}
+      {/* MODAL PARA REEMPLAZAR O SUSTITUIR ARCHIVO DE DOCUMENTO */}
       {modalReemplazarDoc.abierto && (
         <div
           role="dialog"
@@ -2850,7 +2930,9 @@ export default function PanelEstudiante() {
             <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 text-white p-6 relative">
               <div className="flex items-center justify-between gap-3 mb-2">
                 <span className="inline-block bg-white/10 text-blue-200 border border-white/20 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
-                  Sustitución de Versión • v{(modalReemplazarDoc.versionActual || 1) + 1}
+                  {modalReemplazarDoc.versionTarget
+                    ? `Corrección de Archivo • v${modalReemplazarDoc.versionTarget.numero_version}`
+                    : `Nueva Entrega • v${(modalReemplazarDoc.versionActual || 1) + 1}`}
                 </span>
                 <button
                   type="button"
@@ -2864,27 +2946,45 @@ export default function PanelEstudiante() {
                 </button>
               </div>
               <h3 className="text-xl font-black text-white">
-                Reemplazar Documento
+                {modalReemplazarDoc.versionTarget
+                  ? `Sustituir Archivo de la Versión v${modalReemplazarDoc.versionTarget.numero_version}`
+                  : `Cargar Nueva Versión (v${(modalReemplazarDoc.versionActual || 1) + 1})`}
               </h3>
               <p className="text-xs text-slate-300 mt-1 truncate">
-                Documento: <strong>{modalReemplazarDoc.docNombre}</strong> (Versión vigente actual: v{modalReemplazarDoc.versionActual || 1})
+                Documento: <strong>{modalReemplazarDoc.docNombre}</strong>{" "}
+                {modalReemplazarDoc.versionTarget
+                  ? `(Modificando archivo de la v${modalReemplazarDoc.versionTarget.numero_version})`
+                  : `(Versión vigente actual: v${modalReemplazarDoc.versionActual || 1})`}
               </p>
             </div>
 
             <div className="p-6 space-y-4">
               <div className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-200/80 text-xs text-slate-700 space-y-1">
                 <p className="font-bold text-blue-950 flex items-center gap-1">
-                  <span>🛡️</span> Control de Versiones Documentales Activo
+                  <span>🛡️</span>{" "}
+                  {modalReemplazarDoc.versionTarget
+                    ? "Modo de Corrección de Archivo Subido por Error"
+                    : "Control de Versiones Documentales Activo"}
                 </p>
                 <p className="text-slate-600 leading-relaxed text-[11px]">
-                  Al cargar este nuevo archivo se creará la <strong>Versión v{(modalReemplazarDoc.versionActual || 1) + 1}</strong>. La versión anterior (v{modalReemplazarDoc.versionActual || 1}) permanecerá archivada en el historial inmutable para consulta, trazabilidad y cotejo del docente evaluador.
+                  {modalReemplazarDoc.versionTarget ? (
+                    <>
+                      Si te equivocaste al adjuntar el archivo de la <strong>Versión v{modalReemplazarDoc.versionTarget.numero_version}</strong>, puedes subir el archivo correcto aquí. Dicha versión se actualizará directamente para corregir el error sin romper la secuencia histórica.
+                    </>
+                  ) : (
+                    <>
+                      Al cargar este nuevo archivo se creará la <strong>Versión v{(modalReemplazarDoc.versionActual || 1) + 1}</strong>. La versión anterior (v{modalReemplazarDoc.versionActual || 1}) permanecerá archivada en el historial inmutable para consulta, trazabilidad y cotejo del docente evaluador.
+                    </>
+                  )}
                 </p>
               </div>
 
               <form onSubmit={handleEnviarReemplazoDoc} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                    Nuevo archivo de reemplazo (máx. 10 MB):
+                    {modalReemplazarDoc.versionTarget
+                      ? `Nuevo archivo corregido para la v${modalReemplazarDoc.versionTarget.numero_version} (máx. 10 MB):`
+                      : `Archivo de la nueva versión v${(modalReemplazarDoc.versionActual || 1) + 1} (máx. 10 MB):`}
                   </label>
                   <input
                     type="file"
@@ -2917,7 +3017,11 @@ export default function PanelEstudiante() {
                         motivo: e.target.value,
                       }))
                     }
-                    placeholder="Explica qué correcciones o ajustes realizaste en este archivo (ej: Se incorporaron las correcciones metodológicas solicitadas por el asesor)..."
+                    placeholder={
+                      modalReemplazarDoc.versionTarget
+                        ? "Ej: Se adjuntó el archivo incorrecto en la entrega previa; se sustituye por la versión correcta aprobada..."
+                        : "Explica qué correcciones o ajustes realizaste en este archivo (ej: Se incorporaron las correcciones metodológicas solicitadas por el asesor)..."
+                    }
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 leading-relaxed resize-y shadow-inner"
                   />
                 </div>
@@ -2927,7 +3031,7 @@ export default function PanelEstudiante() {
                     htmlFor="modal-reemplazar-descripcion"
                     className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5"
                   >
-                    Notas Complementarias de la Versión (Opcional):
+                    Notas Complementarias (Opcional):
                   </label>
                   <textarea
                     id="modal-reemplazar-descripcion"
@@ -2971,12 +3075,16 @@ export default function PanelEstudiante() {
                     {modalReemplazarDoc.enviando ? (
                       <>
                         <span className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></span>
-                        <span>Actualizando...</span>
+                        <span>Guardando archivo...</span>
                       </>
                     ) : (
                       <>
                         <span>💾</span>
-                        <span>Guardar y Reemplazar Archivo</span>
+                        <span>
+                          {modalReemplazarDoc.versionTarget
+                            ? `Guardar Corrección en Versión v${modalReemplazarDoc.versionTarget.numero_version}`
+                            : `Cargar y Radicar Versión v${(modalReemplazarDoc.versionActual || 1) + 1}`}
+                        </span>
                       </>
                     )}
                   </button>

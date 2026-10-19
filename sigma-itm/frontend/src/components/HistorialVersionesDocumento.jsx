@@ -32,6 +32,8 @@ export default function HistorialVersionesDocumento({
   documento,
   onPrevisualizar,
   onReemplazar,
+  onReemplazarVersion,
+  onEliminarVersion,
   obtenerUrl,
   formatearFecha,
   className = "",
@@ -145,24 +147,26 @@ export default function HistorialVersionesDocumento({
                 Auditoría inmutable de sustituciones, motivos y archivos físicos resguardados en el ITM.
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {onReemplazar && (
                 <button
                   type="button"
-                  onClick={onReemplazar}
-                  className="text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg shadow-2xs cursor-pointer"
-                  title="Subir una nueva versión si te equivocaste de archivo"
+                  onClick={() => onReemplazar(null)}
+                  className="text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg shadow-2xs cursor-pointer flex items-center gap-1"
+                  title={`Subir una nueva entrega que se registrará como v${versionActualNum + 1}`}
                 >
-                  🔄 Cargar Nueva Versión
+                  <span>🔄</span>
+                  <span>Cargar Nueva Versión (v{versionActualNum + 1})</span>
                 </button>
               )}
               {tieneMultiplesVersiones && (
                 <button
                   type="button"
                   onClick={() => abrirComparador()}
-                  className="text-[11px] font-black text-itm-purple hover:underline cursor-pointer"
+                  className="text-[11px] font-black text-itm-purple hover:underline cursor-pointer flex items-center gap-1"
                 >
-                  ⚖️ Abrir Comparador
+                  <span>⚖️</span>
+                  <span>Abrir Comparador</span>
                 </button>
               )}
             </div>
@@ -178,7 +182,7 @@ export default function HistorialVersionesDocumento({
               return (
                 <div
                   key={v.id || v.numero_version}
-                  className={`p-3 rounded-xl border transition-all text-xs ${
+                  className={`p-3.5 rounded-xl border transition-all text-xs ${
                     esVigente
                       ? "bg-white border-emerald-300 shadow-xs ring-1 ring-emerald-200/60"
                       : "bg-white/85 border-slate-200 text-slate-700 hover:border-slate-300"
@@ -213,8 +217,9 @@ export default function HistorialVersionesDocumento({
                       </span>
                     </div>
 
-                    {/* Acciones de la Versión */}
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Botonera Estandarizada Completa para CADA Versión */}
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                      {/* 1. Ver / Previsualizar */}
                       {onPrevisualizar && (
                         <button
                           type="button"
@@ -236,6 +241,7 @@ export default function HistorialVersionesDocumento({
                         </button>
                       )}
 
+                      {/* 2. Descargar archivo */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -255,15 +261,57 @@ export default function HistorialVersionesDocumento({
                         <span>Descargar</span>
                       </button>
 
-                      {tieneMultiplesVersiones && !esVigente && (
+                      {/* 3. Reemplazar / Sustituir este archivo si hubo error al subir */}
+                      {(onReemplazarVersion || onReemplazar) && (
                         <button
                           type="button"
-                          onClick={() => abrirComparador(v, versiones[0])}
+                          onClick={() => {
+                            if (onReemplazarVersion) {
+                              onReemplazarVersion(v);
+                            } else if (onReemplazar) {
+                              onReemplazar(v);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-all cursor-pointer shadow-2xs"
+                          title={`Reemplazar o cambiar el archivo de la versión v${v.numero_version} si te equivocaste al subirlo`}
+                        >
+                          <span>🔄</span>
+                          <span>Reemplazar</span>
+                        </button>
+                      )}
+
+                      {/* 4. Cotejar / Comparar */}
+                      {tieneMultiplesVersiones && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (esVigente) {
+                              abrirComparador(versiones[1] || versiones[versiones.length - 1], v);
+                            } else {
+                              abrirComparador(v, versiones[0]);
+                            }
+                          }}
                           className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-100 bg-indigo-50 rounded-lg border border-indigo-200 transition-all cursor-pointer shadow-2xs"
-                          title={`Comparar v${v.numero_version} con la versión vigente (v${versionActualNum})`}
+                          title={
+                            esVigente
+                              ? `Cotejar versión vigente (v${v.numero_version}) con la versión anterior`
+                              : `Cotejar v${v.numero_version} con la versión vigente (v${versionActualNum})`
+                          }
                         >
                           <span>⚖️</span>
                           <span className="hidden sm:inline">Cotejar</span>
+                        </button>
+                      )}
+
+                      {/* 5. Tarro de basura / Eliminar esta versión */}
+                      {onEliminarVersion && (
+                        <button
+                          type="button"
+                          onClick={() => onEliminarVersion(v)}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 rounded-lg border border-red-200 transition-all cursor-pointer shadow-2xs"
+                          title={`Eliminar la versión v${v.numero_version} si fue subida por error`}
+                        >
+                          <span>🗑️</span>
                         </button>
                       )}
                     </div>
