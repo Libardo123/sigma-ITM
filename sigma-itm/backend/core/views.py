@@ -261,14 +261,24 @@ class PostulacionViewSet(viewsets.ModelViewSet):
         if usuario.es_asesor:
             qs = qs.filter(asesor=usuario)
 
-        # Filtros opcionales por estado y modalidad para Asesor, Comité y Admin
+        # Filtros opcionales por estado, modalidad y búsqueda (cédula, nombre o título) para Asesor, Comité y Admin
         estado_filtro = self.request.query_params.get("estado")
         modalidad_filtro = self.request.query_params.get("modalidad")
+        busqueda = self.request.query_params.get("search") or self.request.query_params.get("q")
 
         if estado_filtro:
             qs = qs.filter(estado=estado_filtro)
         if modalidad_filtro:
             qs = qs.filter(modalidad_id=modalidad_filtro)
+        if busqueda and busqueda.strip():
+            b = busqueda.strip()
+            qs = qs.filter(
+                Q(estudiante__cedula__icontains=b) |
+                Q(estudiante__first_name__icontains=b) |
+                Q(estudiante__last_name__icontains=b) |
+                Q(estudiante__username__icontains=b) |
+                Q(titulo_proyecto__icontains=b)
+            )
 
         return qs
 

@@ -179,9 +179,10 @@ export default function PanelAprobacion() {
     setProyectosColapsados((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Filtros de búsqueda para la pestaña de Historial
+  // Filtros de búsqueda para la pestaña de Historial y Gestión General
   const [busquedaHistorial, setBusquedaHistorial] = useState("");
   const [filtroModalidadHistorial, setFiltroModalidadHistorial] = useState("");
+  const [busquedaGeneral, setBusquedaGeneral] = useState("");
 
   // Estado del Modal de Corrección / Devolución Ampliado
   const [modalCorreccion, setModalCorreccion] = useState({
@@ -987,6 +988,10 @@ export default function PanelAprobacion() {
   const proyectosFiltradosHistorial = procesos.filter((p) => {
     const coincideTexto =
       !busquedaHistorial ||
+      (p.estudiante_cedula &&
+        p.estudiante_cedula
+          .toLowerCase()
+          .includes(busquedaHistorial.toLowerCase())) ||
       (p.estudiante_nombre &&
         p.estudiante_nombre
           .toLowerCase()
@@ -1231,35 +1236,70 @@ export default function PanelAprobacion() {
       {/* PESTAÑA 1 y COMITÉ: GESTIÓN DE PROCESOS ACTIVOS Y EN REVISIÓN */}
       {!cargando && !errorCarga && (pestanaActiva === "gestion" || pestanaActiva === "comite") && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {pestanaActiva === "comite" 
-                ? "Proyectos radicados al Comité para evaluación final"
-                : esAsesor
-                ? "Proyectos donde ejerces como asesor titular"
-                : "Trámites activos radicados en plataforma"}
-            </p>
-            <div className="flex items-center gap-3">
-              <label
-                htmlFor="filtro-estado"
-                className="text-sm font-bold text-itm-blue"
-              >
-                Filtro:
-              </label>
-              <select
-                id="filtro-estado"
-                className="border-2 border-slate-200 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-sm transition-all"
-                value={filtroEstado}
-                onChange={(e) => setFiltroEstado(e.target.value)}
-                aria-label="Filtrar procesos por estado"
-              >
-                <option value="">Todos los estados</option>
-                {Object.entries(ETIQUETAS_ESTADO).map(([valor, label]) => (
-                  <option key={valor} value={valor}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <div>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                {pestanaActiva === "comite" 
+                  ? "Proyectos radicados al Comité para evaluación final"
+                  : esAsesor
+                  ? "Proyectos donde ejerces como asesor titular"
+                  : "Trámites activos radicados en plataforma"}
+              </p>
+              {busquedaGeneral && (
+                <p className="text-[11px] font-semibold text-itm-purple mt-0.5">
+                  Filtrando por búsqueda: "{busquedaGeneral}"
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Buscador Rápido por Cédula, Estudiante o Título */}
+              <div className="relative min-w-[240px] sm:min-w-[320px]">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">
+                  🔍
+                </span>
+                <input
+                  type="text"
+                  value={busquedaGeneral}
+                  onChange={(e) => setBusquedaGeneral(e.target.value)}
+                  placeholder="Buscar por Cédula, estudiante o propuesta..."
+                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-itm-purple focus:bg-white transition-all shadow-inner"
+                />
+                {busquedaGeneral && (
+                  <button
+                    type="button"
+                    onClick={() => setBusquedaGeneral("")}
+                    title="Limpiar búsqueda"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Filtro por Estado */}
+              <div className="flex items-center gap-2 shrink-0">
+                <label
+                  htmlFor="filtro-estado"
+                  className="text-xs sm:text-sm font-bold text-itm-blue shrink-0"
+                >
+                  Estado:
+                </label>
+                <select
+                  id="filtro-estado"
+                  className="border-2 border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                  value={filtroEstado}
+                  onChange={(e) => setFiltroEstado(e.target.value)}
+                  aria-label="Filtrar procesos por estado"
+                >
+                  <option value="">Todos los estados</option>
+                  {Object.entries(ETIQUETAS_ESTADO).map(([valor, label]) => (
+                    <option key={valor} value={valor}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -1270,22 +1310,56 @@ export default function PanelAprobacion() {
               } else if (pestanaActiva === "comite") {
                 if (!["REVISION_COMITE", "FINALIZADO"].includes(p.estado)) return false;
               }
-              if (filtroEstado) return p.estado === filtroEstado;
+              if (filtroEstado && p.estado !== filtroEstado) return false;
+
+              if (busquedaGeneral && busquedaGeneral.trim()) {
+                const term = busquedaGeneral.trim().toLowerCase();
+                const cedula = (p.estudiante_cedula || "").toLowerCase();
+                const nombre = (p.estudiante_nombre || "").toLowerCase();
+                const username = (p.estudiante || "").toLowerCase();
+                const titulo = (p.titulo_proyecto || "").toLowerCase();
+                const modalidad = (p.modalidad_nombre || "").toLowerCase();
+                const asesor = (p.asesor_nombre || "").toLowerCase();
+
+                const coincide =
+                  cedula.includes(term) ||
+                  nombre.includes(term) ||
+                  username.includes(term) ||
+                  titulo.includes(term) ||
+                  modalidad.includes(term) ||
+                  asesor.includes(term);
+
+                if (!coincide) return false;
+              }
+
               return true;
             });
 
             if (procesosFiltrados.length === 0) {
               return (
                 <div className="glass-panel rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
-                  <span className="text-4xl block mb-3">📭</span>
+                  <span className="text-4xl block mb-3">🔍</span>
                   <p className="text-slate-800 font-bold text-base mb-1">
-                    {filtroEstado
+                    {busquedaGeneral
+                      ? `0 proyectos encontrados para la búsqueda: "${busquedaGeneral}"`
+                      : filtroEstado
                       ? `0 proyectos encontrados en etapa: ${ETIQUETAS_ESTADO[filtroEstado] || filtroEstado}`
                       : "No hay procesos registrados en esta vista"}
                   </p>
-                  <p className="text-slate-500 text-xs max-w-md mx-auto">
-                    Prueba seleccionando 'Todos los estados' o cambiando el filtro de búsqueda.
+                  <p className="text-slate-500 text-xs max-w-md mx-auto mb-4">
+                    {busquedaGeneral
+                      ? "Verifica que el número de cédula o nombre del estudiante esté correctamente digitado."
+                      : "Prueba seleccionando 'Todos los estados' o cambiando el término de búsqueda."}
                   </p>
+                  {busquedaGeneral && (
+                    <button
+                      type="button"
+                      onClick={() => setBusquedaGeneral("")}
+                      className="px-4 py-2 bg-itm-blue text-white rounded-xl text-xs font-bold hover:bg-itm-blue-dark transition-all shadow-sm"
+                    >
+                      Limpiar búsqueda
+                    </button>
+                  )}
                 </div>
               );
             }
@@ -1307,7 +1381,16 @@ export default function PanelAprobacion() {
                         {p.estudiante_nombre}
                       </h3>
                       {p.estudiante_cedula && (
-                        <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded font-mono font-bold border border-slate-200">
+                        <span
+                          className={`text-xs px-2.5 py-0.5 rounded font-mono font-bold border transition-all ${
+                            busquedaGeneral &&
+                            p.estudiante_cedula
+                              .toLowerCase()
+                              .includes(busquedaGeneral.trim().toLowerCase())
+                              ? "bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/50"
+                              : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
+                        >
                           CC: {p.estudiante_cedula}
                         </span>
                       )}

@@ -9,8 +9,9 @@ class UsuarioAdmin(UserAdmin):
     fieldsets = list(UserAdmin.fieldsets or []) + [
         ("SIGMA ITM", {"fields": ("rol", "cedula", "programa_academico", "es_auxiliar")}),
     ]
-    list_display = ("username", "first_name", "last_name", "rol", "es_auxiliar", "is_staff")
+    list_display = ("username", "first_name", "last_name", "rol", "cedula", "es_auxiliar", "is_staff")
     list_filter = ("rol", "es_auxiliar", "is_staff", "is_active")
+    search_fields = ("username", "first_name", "last_name", "email", "cedula")
 
 
 class DocumentoInline(admin.TabularInline):
@@ -27,11 +28,15 @@ class HistorialInline(admin.TabularInline):
 
 @admin.register(Postulacion)
 class PostulacionAdmin(admin.ModelAdmin):
-    list_display = ("estudiante", "modalidad", "asesor", "estado", "requiere_correccion", "creada_en")
+    list_display = ("id", "estudiante", "get_cedula", "modalidad", "asesor", "estado", "requiere_correccion", "creada_en")
     list_filter = ("estado", "modalidad", "requiere_correccion")
-    search_fields = ("estudiante__username", "estudiante__first_name", "estudiante__last_name")
+    search_fields = ("estudiante__cedula", "estudiante__username", "estudiante__first_name", "estudiante__last_name", "titulo_proyecto")
     readonly_fields = ("requiere_correccion", "observacion_correccion")
     inlines = [DocumentoInline, HistorialInline]
+
+    @admin.display(description="Cédula", ordering="estudiante__cedula")
+    def get_cedula(self, obj):
+        return obj.estudiante.cedula or "-"
 
 
 @admin.register(Modalidad)
