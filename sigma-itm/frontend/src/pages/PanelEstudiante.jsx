@@ -1947,23 +1947,23 @@ export default function PanelEstudiante() {
                             </span>
                           </div>
 
-                          {/* Descripción / Justificación editable de la versión vigente */}
+                          {/* Descripción editable original intacta y funcional */}
                           {docEnEdicionId === doc.id ? (
                             <div className="mt-2 flex items-center gap-2">
                               <input
                                 type="text"
                                 value={descripcionEnEdicion}
                                 onChange={(e) => setDescripcionEnEdicion(e.target.value)}
-                                placeholder="Escribe el motivo o justificación de esta versión..."
+                                placeholder="Escribe la descripción o notas del documento..."
                                 className="flex-1 bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800"
                               />
                               <button
                                 type="button"
                                 onClick={() => handleGuardarDescripcion(doc.id)}
                                 disabled={guardandoDescripcion}
-                                className="bg-itm-blue text-white text-xs px-3 py-1 rounded font-bold hover:bg-itm-blue-dark transition-colors"
+                                className="bg-itm-blue text-white text-xs px-3 py-1 rounded font-bold hover:bg-itm-blue-dark transition-colors cursor-pointer"
                               >
-                                Guardar
+                                {guardandoDescripcion ? "Guardando..." : "Guardar"}
                               </button>
                               <button
                                 type="button"
@@ -1971,48 +1971,36 @@ export default function PanelEstudiante() {
                                   setDocEnEdicionId(null);
                                   setDescripcionEnEdicion("");
                                 }}
-                                className="bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded font-bold hover:bg-slate-300 transition-colors"
+                                className="bg-slate-200 text-slate-700 text-xs px-2.5 py-1 rounded font-bold hover:bg-slate-300 transition-colors cursor-pointer"
                               >
                                 Cancelar
                               </button>
                             </div>
                           ) : (
-                            <div className="mt-1.5 space-y-1 text-xs">
-                              <div className="flex items-start gap-1.5 flex-wrap">
-                                <span className="text-slate-500 font-bold shrink-0">
-                                  {tieneHistorial ? `Motivo / Justificación (v${maxVer}):` : "Descripción:"}
+                            <div className="mt-1 flex items-center gap-2 text-xs flex-wrap">
+                              {doc.descripcion ? (
+                                <span className="text-slate-600 italic">
+                                  "{doc.descripcion}"
                                 </span>
-                                <span className="text-slate-800 italic font-medium">
-                                  "{motivoVigente || doc.descripcion || "Sin justificación registrada"}"
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setDocEnEdicionId(doc.id);
-                                    setDescripcionEnEdicion(motivoVigente || doc.descripcion || "");
-                                  }}
-                                  className="text-[11px] text-itm-blue hover:text-itm-purple font-semibold hover:underline shrink-0 ml-1"
-                                  title="Editar motivo de la versión vigente"
-                                >
-                                  ✏️ Editar
-                                </button>
-                              </div>
-                              {versionVigenteObj?.descripcion && versionVigenteObj.descripcion !== motivoVigente && (
-                                <div className="text-[11px] text-slate-500">
-                                  <span className="font-bold">Notas complementarias (v{maxVer}):</span> {versionVigenteObj.descripcion}
-                                </div>
+                              ) : (
+                                <span className="text-slate-400 italic">Sin descripción</span>
                               )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDocEnEdicionId(doc.id);
+                                  setDescripcionEnEdicion(doc.descripcion || "");
+                                }}
+                                className="text-[11px] text-itm-blue hover:text-itm-purple font-semibold hover:underline cursor-pointer"
+                              >
+                                ✏️ Editar descripción
+                              </button>
                             </div>
                           )}
 
-                          <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-1 font-medium flex-wrap">
-                            <span>Radicado el {formatearFecha(doc.subido_en)}</span>
-                            {tieneHistorial && (
-                              <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                ✓ v{maxVer} vigente actualizada el {formatearFecha(fechaVigente)}
-                              </span>
-                            )}
-                          </div>
+                          <p className="text-[11px] text-slate-400 mt-1 font-medium">
+                            Radicado el {formatearFecha(doc.subido_en)}
+                          </p>
                         </div>
 
                         {/* Acciones del Documento: Previsualizar, Descargar, Reemplazar y Eliminar */}

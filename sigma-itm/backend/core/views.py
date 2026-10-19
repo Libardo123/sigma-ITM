@@ -872,7 +872,13 @@ class DocumentoViewSet(viewsets.ModelViewSet):
                 creado_por=usuario,
             )
         else:
-            serializer.save()
+            doc_actualizado = serializer.save()
+            if "descripcion" in serializer.validated_data:
+                ultima_version = doc_actualizado.versiones.order_by("-numero_version").first()
+                if ultima_version:
+                    ultima_version.motivo = doc_actualizado.descripcion
+                    ultima_version.descripcion = doc_actualizado.descripcion
+                    ultima_version.save(update_fields=["motivo", "descripcion"])
 
     def perform_destroy(self, instance: Documento):
         usuario: Usuario = self.request.user  # type: ignore
