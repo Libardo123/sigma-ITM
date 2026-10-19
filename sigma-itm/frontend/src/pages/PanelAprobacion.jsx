@@ -1509,15 +1509,20 @@ export default function PanelAprobacion() {
                 </div>
               )}
 
-              {/* Botón para ver bitácora */}
+              {/* Botón para ver bitácora con flecha ▲ / ▼ */}
               <div className="mt-4 flex justify-end border-t border-slate-100 pt-4">
                 <button
+                  type="button"
                   onClick={() => toggleHistorial(p.id)}
-                  className="text-xs text-itm-blue hover:text-itm-purple font-bold flex items-center gap-1.5 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 transition-colors shadow-xs"
+                  className="text-xs text-itm-blue hover:text-itm-purple font-bold flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 transition-colors shadow-xs cursor-pointer"
+                  title="Ver u ocultar la bitácora y auditoría de eventos"
                 >
                   <span>📜</span>
                   <span>
-                    {historialVisible[p.id] ? "Ocultar Bitácora del Trámite" : "Ver Bitácora y Auditoría"}
+                    {historialVisible[p.id] ? "Ocultar Historial y Bitácora" : "Ver Historial y Bitácora"}
+                  </span>
+                  <span className="text-[10px] transition-transform duration-200">
+                    {historialVisible[p.id] ? "▲" : "▼"}
                   </span>
                 </button>
               </div>
@@ -1533,33 +1538,75 @@ export default function PanelAprobacion() {
                       Cargando eventos de auditoría...
                     </p>
                   ) : historialData[p.id]?.length > 0 ? (
-                    <div className="space-y-2 max-h-52 overflow-y-auto pr-2">
-                      {historialData[p.id].map((h) => (
-                        <div
-                          key={h.id}
-                          className="text-xs bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs"
-                        >
-                          <div className="flex items-center justify-between font-semibold text-slate-700 mb-1">
-                            <span>
-                              {h.estado_anterior_display || h.estado_anterior} ➔{" "}
+                    <div className="space-y-3">
+                      {/* ÚLTIMO MOVIMIENTO REGISTRADO (ARRIBA Y DESTACADO) */}
+                      {(() => {
+                        const h0 = historialData[p.id][0];
+                        return (
+                          <div className="text-xs bg-emerald-50/70 p-3 rounded-xl border border-emerald-300 shadow-xs ring-2 ring-emerald-500/10">
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                                Último Movimiento Registrado
+                              </span>
+                              <span className="text-slate-500 text-xs font-semibold">
+                                {formatearFecha(h0.fecha)}
+                              </span>
+                            </div>
+                            <div className="font-bold text-slate-800 mb-1">
+                              {h0.estado_anterior_display || h0.estado_anterior} ➔{" "}
                               <strong className="text-itm-blue">
-                                {h.estado_nuevo_display || h.estado_nuevo}
+                                {h0.estado_nuevo_display || h0.estado_nuevo}
                               </strong>
-                            </span>
-                            <span className="text-slate-400 font-normal">
-                              {formatearFecha(h.fecha)}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-slate-500">
-                            Por: <strong>{h.realizado_por}</strong>
-                          </p>
-                          {h.observacion && (
-                            <p className="text-xs italic text-slate-800 bg-slate-50 p-1.5 rounded mt-1 border-l-2 border-itm-purple">
-                              "{h.observacion}"
+                            </div>
+                            <p className="text-[11px] text-slate-600">
+                              Responsable: <strong>{h0.realizado_por}</strong>
                             </p>
-                          )}
+                            {h0.observacion && (
+                              <p className="text-xs italic text-slate-800 bg-white p-2 rounded-lg mt-1.5 border border-emerald-200">
+                                "{h0.observacion}"
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      {/* EVENTOS ANTERIORES SI HAY MÁS DE 1 */}
+                      {historialData[p.id].length > 1 && (
+                        <div className="pt-2 border-t border-slate-200">
+                          <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2">
+                            Movimientos y Eventos Anteriores ({historialData[p.id].length - 1}):
+                          </p>
+                          <div className="space-y-2 max-h-52 overflow-y-auto pr-2">
+                            {historialData[p.id].slice(1).map((h) => (
+                              <div
+                                key={h.id}
+                                className="text-xs bg-white p-2.5 rounded-lg border border-slate-200/80 shadow-2xs"
+                              >
+                                <div className="flex items-center justify-between font-semibold text-slate-700 mb-1">
+                                  <span>
+                                    {h.estado_anterior_display || h.estado_anterior} ➔{" "}
+                                    <strong className="text-itm-blue">
+                                      {h.estado_nuevo_display || h.estado_nuevo}
+                                    </strong>
+                                  </span>
+                                  <span className="text-slate-400 font-normal">
+                                    {formatearFecha(h.fecha)}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500">
+                                  Por: <strong>{h.realizado_por}</strong>
+                                </p>
+                                {h.observacion && (
+                                  <p className="text-xs italic text-slate-800 bg-slate-50 p-1.5 rounded mt-1 border-l-2 border-itm-purple">
+                                    "{h.observacion}"
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   ) : (
                     <p className="text-xs text-slate-500">
@@ -2435,14 +2482,18 @@ export default function PanelAprobacion() {
                     <div className="flex items-center gap-3 shrink-0">
                       <EstadoBadge estado={p.estado} texto={p.estado_display} />
                       <button
+                        type="button"
                         onClick={() => toggleHistorial(p.id)}
-                        className="text-xs font-bold text-itm-blue hover:text-itm-purple bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                        className="text-xs font-bold text-itm-blue hover:text-itm-purple bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                       >
                         <span>📜</span>
                         <span>
                           {historialVisible[p.id]
-                            ? "Cerrar Bitácora"
-                            : "Ver Auditoría Completa"}
+                            ? "Ocultar Historial y Bitácora"
+                            : "Ver Historial y Bitácora"}
+                        </span>
+                        <span className="text-[10px] transition-transform duration-200">
+                          {historialVisible[p.id] ? "▲" : "▼"}
                         </span>
                       </button>
                     </div>
@@ -2459,33 +2510,75 @@ export default function PanelAprobacion() {
                           Cargando eventos de auditoría...
                         </p>
                       ) : historialData[p.id]?.length > 0 ? (
-                        <div className="space-y-2">
-                          {historialData[p.id].map((h) => (
-                            <div
-                              key={h.id}
-                              className="text-xs bg-white p-3 rounded-lg border border-slate-200 shadow-2xs"
-                            >
-                              <div className="flex items-center justify-between font-semibold text-slate-800 mb-1">
-                                <span>
-                                  {h.estado_anterior_display || h.estado_anterior} ➔{" "}
+                        <div className="space-y-3">
+                          {/* ÚLTIMO MOVIMIENTO (ARRIBA Y DESTACADO) */}
+                          {(() => {
+                            const h0 = historialData[p.id][0];
+                            return (
+                              <div className="text-xs bg-emerald-50/70 p-3 rounded-xl border border-emerald-300 shadow-xs ring-2 ring-emerald-500/10">
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                                    Último Movimiento Registrado
+                                  </span>
+                                  <span className="text-slate-500 text-xs font-semibold">
+                                    {formatearFecha(h0.fecha)}
+                                  </span>
+                                </div>
+                                <div className="font-bold text-slate-800 mb-1">
+                                  {h0.estado_anterior_display || h0.estado_anterior} ➔{" "}
                                   <strong className="text-itm-blue">
-                                    {h.estado_nuevo_display || h.estado_nuevo}
+                                    {h0.estado_nuevo_display || h0.estado_nuevo}
                                   </strong>
-                                </span>
-                                <span className="text-slate-400 font-normal">
-                                  {formatearFecha(h.fecha)}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-500">
-                                Responsable: <strong>{h.realizado_por}</strong>
-                              </p>
-                              {h.observacion && (
-                                <p className="text-xs italic text-slate-800 bg-slate-50 p-2 rounded mt-1.5 border-l-2 border-itm-purple">
-                                  "{h.observacion}"
+                                </div>
+                                <p className="text-[11px] text-slate-600">
+                                  Responsable: <strong>{h0.realizado_por}</strong>
                                 </p>
-                              )}
+                                {h0.observacion && (
+                                  <p className="text-xs italic text-slate-800 bg-white p-2 rounded-lg mt-1.5 border border-emerald-200">
+                                    "{h0.observacion}"
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          })()}
+
+                          {/* EVENTOS ANTERIORES */}
+                          {historialData[p.id].length > 1 && (
+                            <div className="pt-2 border-t border-slate-200">
+                              <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-2">
+                                Movimientos y Eventos Anteriores ({historialData[p.id].length - 1}):
+                              </p>
+                              <div className="space-y-2">
+                                {historialData[p.id].slice(1).map((h) => (
+                                  <div
+                                    key={h.id}
+                                    className="text-xs bg-white p-3 rounded-lg border border-slate-200 shadow-2xs"
+                                  >
+                                    <div className="flex items-center justify-between font-semibold text-slate-800 mb-1">
+                                      <span>
+                                        {h.estado_anterior_display || h.estado_anterior} ➔{" "}
+                                        <strong className="text-itm-blue">
+                                          {h.estado_nuevo_display || h.estado_nuevo}
+                                        </strong>
+                                      </span>
+                                      <span className="text-slate-400 font-normal">
+                                        {formatearFecha(h.fecha)}
+                                      </span>
+                                    </div>
+                                    <p className="text-[11px] text-slate-500">
+                                      Responsable: <strong>{h.realizado_por}</strong>
+                                    </p>
+                                    {h.observacion && (
+                                      <p className="text-xs italic text-slate-800 bg-slate-50 p-2 rounded mt-1.5 border-l-2 border-itm-purple">
+                                        "{h.observacion}"
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          ))}
+                          )}
                         </div>
                       ) : (
                         <p className="text-xs text-slate-500">
