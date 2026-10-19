@@ -32,6 +32,7 @@
 - [4. Módulo del Estudiante: Radicación, Seguimiento y Certificación](#4-módulo-del-estudiante-radicación-seguimiento-y-certificación)
   - [4.1 Descripción del Panel del Estudiante](#41-descripción-del-panel-del-estudiante)
   - [4.2 Guía de Radicación: Selección y Formulario Multibloque](#42-guía-de-radicación-selección-y-formulario-multibloque)
+    - [4.2.1 Tabla Maestra de Documentos Obligatorios por Modalidad (10 Opciones ITM)](#421-tabla-maestra-de-documentos-obligatorios-por-modalidad-10-opciones-itm)
   - [4.3 Interpretación del Stepper de Progreso y Línea de Tiempo](#43-interpretación-del-stepper-de-progreso-y-línea-de-tiempo)
   - [4.4 Carga, Gestión y Descarga de Documentos Anexos](#44-carga-gestión-y-descarga-de-documentos-anexos)
   - [4.5 Alerta de Corrección y Protocolo de Subsanación con Archivo](#45-alerta-de-corrección-y-protocolo-de-subsanación-con-archivo)
@@ -281,10 +282,29 @@ Al pulsar sobre el botón **"POSTULAR A NUEVA OPCION DE GRADO"**, se despliega e
 <p align="center"><em>Figura 6: Formulario estructurado con selección de modalidad, ficha técnica reglamentaria y campos obligatorios de radicación.</em></p>
 
 **Estructura de los 4 Bloques:**
-1. **Bloque 1 — Datos Personales y Académicos:** Semestre actual, programa y teléfono de contacto.
-2. **Bloque 2 — Selección de Modalidad (10 Opciones ITM):** Cuadrícula interactiva con íconos temáticos y ficha descriptiva del reglamento académico.
-3. **Bloque 3 — Información de la Propuesta:** Título definitivo (máximo 250 caracteres) y resumen de justificación/alcance.
-4. **Bloque 4 — Carga de Documentos Iniciales Obligatorios:** Carga simultánea de propuesta de grado, paz y salvo académico y carta de presentación.
+1. **Bloque 1 — Datos Personales y Académicos:** Semestre actual, programa académico, cédula y teléfono de contacto.
+2. **Bloque 2 — Selección de Modalidad (10 Opciones ITM):** Cuadrícula interactiva con íconos temáticos, selector reglamentario y ficha técnica descriptiva institucional.
+3. **Bloque 3 — Información de la Propuesta:** Título definitivo de la propuesta (mínimo 5 caracteres) y resumen de justificación, alcance y objetivos.
+4. **Bloque 4 — Carga de Documentos Iniciales Obligatorios:** Carga dinámica y discriminada de los **4 documentos de soporte obligatorios** según la modalidad seleccionada, con nombres oficiales pre-diligenciados y contador de archivos adjuntos en tiempo real.
+
+---
+
+### 4.2.1 Tabla Maestra de Documentos Obligatorios por Modalidad (10 Opciones ITM)
+
+De conformidad con el estatuto estudiantil y los acuerdos de la Facultad de Ingenierías del ITM, cada modalidad de grado exige un paquete estructurado de **cuatro (4) documentos de soporte obligatorios** para formalizar la radicación inicial. Al seleccionar la opción deseada en el Bloque 2, el sistema genera y rotula automáticamente los 4 cuadros de carga correspondientes:
+
+| # | Modalidad de Grado ITM | Cuatro (4) Documentos de Soporte Obligatorios |
+| :-: | :--- | :--- |
+| **1** | **Trabajo de Grado**<br>*(Monografía o I+D Aplicada)* | 1. **Propuesta de proyecto de grado** (Anteproyecto formal con justificación, objetivos, estado del arte, metodología y cronograma).<br>2. **Certificado de paz y salvo académico** o kardex oficial de calificaciones (≥ 80% créditos aprobados).<br>3. **Carta de aceptación y visto bueno del docente asesor propuesto**.<br>4. **Carta de presentación formal** dirigida al Comité de Trabajos de Grado. |
+| **2** | **Prácticas Profesionales**<br>*(Inmersión Empresarial)* | 1. **Carta de aceptación formal de la empresa** (en papel membrete, NIT y cargo a desempeñar).<br>2. **Plan de trabajo y cronograma de actividades** aprobado por el jefe empresarial inmediato.<br>3. **Certificado de matrícula académica vigente** en el ITM.<br>4. **Constancia de vinculación activa a ARL** a cargo de la empresa contratante. |
+| **3** | **Pasantía**<br>*(Estancia Académica o Científica)* | 1. **Carta de aceptación formal** de la institución receptora o centro de I+D+i.<br>2. **Plan de trabajo concertado** entre el tutor externo y el docente asesor del ITM.<br>3. **Aval de la Dirección de Internacionalización** o Decanatura de Facultad.<br>4. **Póliza de seguro médico internacional o nacional** con cobertura vigente. |
+| **4** | **Emprendimiento**<br>*(Creación de Empresa de Base Tec.)* | 1. **Modelo de Negocio** en formato Canvas estructurado y validado.<br>2. **Plan de Negocio integral** con proyecciones financieras y técnicas de factibilidad.<br>3. **Certificado de vinculación activa o incubación** en Emprende ITM, Parque E o Ruta N.<br>4. **Certificado de paz y salvo académico** o kardex de calificaciones. |
+| **5** | **Producto en Laboratorio**<br>*(Desarrollo Experimental / Prototipo)* | 1. **Propuesta técnica detallada** del prototipo o desarrollo en laboratorio.<br>2. **Carta de aval y autorización** del Coordinador de Laboratorios o Jefe de Taller.<br>3. **Protocolo de bioseguridad, calibración de equipos** y gestión de insumos.<br>4. **Certificado de paz y salvo académico** del estudiante postulante. |
+| **6** | **Producto de Investigación**<br>*(Artículo, Ponencia o Semillero)* | 1. **Propuesta de investigación articulada** a la línea del grupo o semillero institucional.<br>2. **Certificado de vinculación activa** al semillero o grupo de investigación ITM.<br>3. **Carta de aval del Docente Líder** del Grupo o Semillero avalado por CIDI.<br>4. **Certificado de paz y salvo académico** y reporte de créditos cursados. |
+| **7** | **Reconocimiento Laboral**<br>*(Experiencia Profesional Demostrada)* | 1. **Certificado laboral oficial** expedido por Gestión Humana (cargo, funciones de ingeniería y antigüedad ≥ 1 año).<br>2. **Certificado de existencia y representación legal** (Cámara de Comercio vigente).<br>3. **Memoria técnica inicial** o informe descriptivo de los aportes y proyectos de ingeniería desarrollados.<br>4. **Certificado de paz y salvo académico** y de matrícula institucional. |
+| **8** | **Certificación por Examen Internacional**<br>*(Certificación Disciplinar de Industria)* | 1. **Certificado o credencial oficial** expedida por el ente internacional certificador con ID de verificación.<br>2. **Ficha técnica** del contenido temático y competencias evaluadas en la certificación internacional.<br>3. **Comprobante de presentación** y reporte detallado de puntaje obtenido.<br>4. **Certificado de paz y salvo académico** institucional del ITM. |
+| **9** | **Cursos de Posgrado**<br>*(Materias de Posgrado / Coterminal)* | 1. **Formulario oficial de inscripción** a modalidad de materias de posgrado / coterminal.<br>2. **Constancia formal de admisión y matrícula vigente** en la especialización o maestría del ITM.<br>3. **Historial académico y kardex** con promedio acumulado reglamentario (≥ 3.8).<br>4. **Certificado de paz y salvo académico** del programa de pregrado. |
+| **10** | **Ingeniería para la Gente**<br>*(Apropiación Social y Comunitaria)* | 1. **Carta de concertación formal** suscrita por los líderes o representantes legales de la comunidad u ONG.<br>2. **Diagnóstico participativo inicial** de necesidades comunitarias y pertinencia social.<br>3. **Plan de trabajo, alcance técnico del proyecto** y cronograma de intervención comunitaria.<br>4. **Certificado de paz y salvo académico** del estudiante postulante. |
 
 ---
 
