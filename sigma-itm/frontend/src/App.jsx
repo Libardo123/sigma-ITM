@@ -6,6 +6,7 @@ import CrearUsuario from "./pages/CrearUsuario";
 import Dashboard from "./pages/Dashboard";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import PaginaVisorDocumento from "./pages/PaginaVisorDocumento";
 import PanelAprobacion from "./pages/PanelAprobacion";
 import PanelEstudiante from "./pages/PanelEstudiante";
 
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<CrearUsuario />} />
+          <Route path="/visor" element={<PaginaVisorDocumento />} />
 
 
           {/* Rutas Protegidas (Dashboard) */}

@@ -67,17 +67,22 @@ export default function Layout({ children }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      {/* Sidebar (Navegación Lateral) */}
-      <aside className="w-64 bg-slate-900 text-slate-300 flex flex-col hidden md:flex fixed h-full z-20">
-        <div className="h-20 flex items-center px-6 border-b border-slate-800">
+      {/* Sidebar (Navegación Lateral) - Paleta Institucional ITM (#001340, #011C5B, #661081, #C6C6C6, #FFFFFF) */}
+      <aside className="w-64 bg-itm-blue-dark text-itm-gray flex flex-col hidden md:flex fixed h-full z-20 border-r border-itm-blue">
+        <div className="h-20 flex items-center px-6 border-b border-itm-blue">
           <Link to="/app" className="font-black text-2xl tracking-tight text-white flex items-center gap-3">
-            <img src={logoItm} alt="Logo ITM" className="h-8 brightness-0 invert" />
-            <span>SIGMA<span className="text-itm-blue">ITM</span></span>
+            <img src={logoItm} alt="Logo ITM" className="h-8 brightness-0 invert drop-shadow-sm" />
+            <span className="flex items-center tracking-tight font-black">
+              SIGMA<span className="bg-gradient-to-tr from-itm-purple via-indigo-600 to-sky-500 text-white font-black text-sm px-2 py-0.5 rounded-lg ml-1.5 shadow-md border border-white/20">ITM</span>
+            </span>
           </Link>
         </div>
         
         <div className="p-6">
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Menú Principal</p>
+          <p className="text-[11px] font-black text-itm-gray uppercase tracking-widest mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-itm-purple"></span>
+            Menú Principal
+          </p>
           <nav className="space-y-2">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
@@ -85,10 +90,10 @@ export default function Layout({ children }) {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive 
-                      ? "bg-itm-blue text-white shadow-lg shadow-itm-blue/20" 
-                      : "hover:bg-slate-800 hover:text-white"
+                      ? "bg-gradient-to-r from-itm-blue to-itm-purple text-white font-bold shadow-md border border-itm-purple/40" 
+                      : "text-itm-gray hover:bg-itm-blue hover:text-white font-medium"
                   }`}
                 >
                   <span className="text-xl">{item.icon}</span>
@@ -99,19 +104,21 @@ export default function Layout({ children }) {
           </nav>
         </div>
 
-        <div className="mt-auto p-6 border-t border-slate-800">
+        <div className="mt-auto p-6 border-t border-itm-blue">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-itm-blue font-bold text-lg border border-slate-700">
-              {usuario?.first_name?.charAt(0) || "U"}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-itm-purple via-indigo-600 to-sky-500 flex items-center justify-center text-white font-black text-lg border-2 border-white/20 shadow-md shrink-0">
+              {(usuario?.first_name || usuario?.username || "U").charAt(0).toUpperCase()}
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">{usuario?.first_name} {usuario?.last_name}</p>
-              <p className="text-xs font-semibold text-itm-purple truncate">{usuario?.rol}</p>
+            <div className="overflow-hidden min-w-0">
+              <p className="text-sm font-bold text-white truncate">{usuario?.first_name} {usuario?.last_name || usuario?.username}</p>
+              <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-itm-purple/40 text-white border border-itm-purple/60">
+                {usuario?.rol}
+              </span>
             </div>
           </div>
           <button
             onClick={salir}
-            className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-500/10 hover:text-red-400 text-slate-400 font-bold py-3 rounded-xl transition-all border border-slate-700 hover:border-red-500/30"
+            className="w-full flex items-center justify-center gap-2 bg-itm-blue/60 hover:bg-red-950/40 hover:text-red-300 text-itm-gray font-bold py-3 rounded-xl transition-all border border-itm-blue hover:border-red-500/40 cursor-pointer"
           >
             <span>🚪</span> Cerrar Sesión
           </button>
@@ -125,7 +132,7 @@ export default function Layout({ children }) {
           <div className="flex items-center justify-between">
             <Link to="/app" className="font-black text-lg text-itm-blue flex items-center gap-2">
               <img src={logoItm} alt="Logo ITM" className="h-6" />
-              <span>SIGMA<span className="text-itm-purple">ITM</span></span>
+              <span className="flex items-center">SIGMA<span className="bg-gradient-to-tr from-itm-purple via-indigo-600 to-sky-500 text-white font-black text-xs px-1.5 py-0.5 rounded-md ml-1 shadow-sm border border-white/20">ITM</span></span>
             </Link>
             <button onClick={salir} className="text-xs font-bold text-slate-500 hover:text-red-600 transition-colors">
               Salir

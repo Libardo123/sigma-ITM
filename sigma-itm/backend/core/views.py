@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -159,6 +159,66 @@ class UsuarioViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_201_CREATED,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def recuperar_password(self, request) -> Response:
+        """Permite a un usuario activo restablecer autónomamente su contraseña.
+
+        Valida que el identificador (username o email) y el documento de identidad (cédula)
+        coincidan con los datos registrados y que la cuenta esté activa.
+        """
+        identificador = str(request.data.get("identificador", "")).strip()
+        cedula = str(request.data.get("cedula", "")).strip()
+        nueva_password = str(request.data.get("nueva_password", "")).strip()
+
+        if not identificador or not cedula or not nueva_password:
+            return Response(
+                {"detail": "Todos los campos (usuario o correo, documento de identidad y nueva contraseña) son obligatorios."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(nueva_password) < 6:
+            return Response(
+                {"detail": "La nueva contraseña debe tener al menos 6 caracteres."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        usuario = Usuario.objects.filter(
+            Q(username__iexact=identificador) | Q(email__iexact=identificador)
+        ).first()
+
+        if not usuario:
+            return Response(
+                {"detail": "No se encontró ninguna cuenta asociada a ese usuario o correo institucional."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if not usuario.is_active:
+            return Response(
+                {
+                    "detail": "Tu cuenta se encuentra registrada pero aún está pendiente de aprobación por el Administrador institucional del ITM.",
+                    "cuenta_inactiva": True,
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not usuario.cedula or usuario.cedula.strip() != cedula:
+            return Response(
+                {"detail": "El documento de identidad no coincide con el registrado en esta cuenta."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        usuario.set_password(nueva_password)
+        usuario.save(update_fields=["password"])
+        logger.info("Contraseña restablecida autónomamente para el usuario %s (rol=%s)", usuario.username, usuario.rol)
+
+        return Response(
+            {
+                "mensaje": "¡Contraseña actualizada exitosamente! Ya puedes iniciar sesión con tu nueva contraseña.",
+                "username": usuario.username,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class ModalidadViewSet(viewsets.ModelViewSet):
@@ -760,15 +820,26 @@ class DocumentoViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("Solo puedes adjuntar documentos a tus propias postulaciones.")
         serializer.save()
 
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        usuario: Usuario = self.request.user  # type: ignore
+        if (
+            usuario.es_estudiante
+            and instance.postulacion.estado in (EstadoProceso.FINALIZADO, EstadoProceso.RECHAZADO)
+        ):
+            raise PermissionDenied(
+                "No es posible modificar documentos de un proceso culminado o cerrado definitivamente."
+            )
+        serializer.save()
+
     def perform_destroy(self, instance: Documento):
         usuario: Usuario = self.request.user  # type: ignore
         if (
             usuario.es_estudiante
-            and instance.postulacion.estado != EstadoProceso.POSTULACION
-            and not instance.postulacion.requiere_correccion
+            and instance.postulacion.estado in (EstadoProceso.FINALIZADO, EstadoProceso.RECHAZADO)
         ):
             raise PermissionDenied(
-                "Solo puedes eliminar documentos mientras el proceso esté en etapa de Postulación o subsanando corrección."
+                "No es posible eliminar documentos de un proceso culminado o cerrado definitivamente."
             )
         instance.delete()
 

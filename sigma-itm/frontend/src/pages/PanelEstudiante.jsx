@@ -11,9 +11,11 @@
 import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
 import EstadoBadge from "../components/EstadoBadge";
+import ModalVisorDocumento, { forzarDescargaArchivo } from "../components/ModalVisorDocumento";
 import Timeline from "../components/Timeline";
 import { useAuth } from "../context/AuthContext";
 import { MODALIDADES_OFICIALES, obtenerInfoModalidad } from "../constants/modalidades";
+import FichaModalidadProyecto from "../components/FichaModalidadProyecto";
 
 const TIPOS_PERMITIDOS = [
   "application/pdf",
@@ -49,6 +51,65 @@ function formatearFecha(fechaIso) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/**
+ * Resuelve la información del destinatario legítimo del documento según la etapa activa y asignación.
+ */
+function obtenerDestinatarioDocumento(proceso) {
+  if (!proceso) {
+    return {
+      pill: "ENVÍO INSTITUCIONAL",
+      titulo: "Coordinación ITM",
+      subtitulo: "Gestión documental de tu proceso de grado.",
+      icono: "🏢",
+    };
+  }
+  switch (proceso.estado) {
+    case "POSTULACION":
+    case "REVISION_DOCUMENTAL":
+      return {
+        pill: "ENVÍO A COORDINACIÓN / ADMINISTRACIÓN",
+        titulo: "Coordinación de Trabajos de Grado / Administrador",
+        subtitulo: "Revisión y aval de los requisitos iniciales reglamentarios.",
+        icono: "🏢",
+      };
+    case "APROBACION":
+      return {
+        pill: "ENVÍO AL ADMINISTRADOR DE MODALIDADES",
+        titulo: "Administración de Modalidades ITM",
+        subtitulo: "Aprobación de requisitos y formalización de docente asesor.",
+        icono: "👔",
+      };
+    case "EN_PROCESO":
+      return {
+        pill: `ENVÍO AL DOCENTE ASESOR • ${proceso.asesor_nombre || "Asesor Asignado"}`,
+        titulo: proceso.asesor_nombre ? `Docente Asesor: ${proceso.asesor_nombre}` : "Docente Asesor Asignado",
+        subtitulo: proceso.asesor_email ? `Correo: ${proceso.asesor_email}` : "Tutoría técnica y seguimiento continuo de entregables.",
+        icono: "👨‍🏫",
+      };
+    case "SUSTENTACION":
+      return {
+        pill: "ENVÍO A JURADOS EVALUADORES Y ASESOR",
+        titulo: "Jurados Evaluadores y Docente Asesor",
+        subtitulo: "Entregables y documentación para la sesión de sustentación y calificación.",
+        icono: "📋",
+      };
+    case "REVISION_COMITE":
+      return {
+        pill: "ENVÍO AL COMITÉ DE TRABAJOS DE GRADO",
+        titulo: "Comité de Trabajos de Grado ITM",
+        subtitulo: "Revisión final de acta de sustentación y cierre institucional.",
+        icono: "🏛️",
+      };
+    default:
+      return {
+        pill: "ENVÍO INSTITUCIONAL",
+        titulo: "Evaluadores Asignados del Proyecto",
+        subtitulo: "Expediente digital de opción de grado.",
+        icono: "📁",
+      };
+  }
 }
 
 function FileUpload({ postulacionId, onDocumentoSubido }) {
@@ -238,6 +299,7 @@ export default function PanelEstudiante() {
   const [validacionDocs, setValidacionDocs] = useState(null);
   const [cargandoValidacion, setCargandoValidacion] = useState(false);
   const [descargandoCertificado, setDescargandoCertificado] = useState(false);
+  const [documentoAVisualizar, setDocumentoAVisualizar] = useState(null);
   const [errorCertificado, setErrorCertificado] = useState("");
   const [mostrarNuevaPostulacion, setMostrarNuevaPostulacion] = useState(false);
   const [pestanaActual, setPestanaActual] = useState("activo"); // 'activo' | 'historial'
@@ -477,6 +539,127 @@ export default function PanelEstudiante() {
     await cargar();
     if (proceso?.id) {
       await cargarValidacion(proceso.id);
+    }
+  };
+
+  const [modalRadicarDoc, setModalRadicarDoc] = useState({
+    abierto: false,
+    nombre: "",
+    descripcion: "",
+    archivo: null,
+    subiendo: false,
+    error: "",
+  });
+
+  const [modalReemplazarDoc, setModalReemplazarDoc] = useState({
+    abierto: false,
+    docId: null,
+    docNombre: "",
+    descripcion: "",
+    archivo: null,
+    enviando: false,
+    error: "",
+  });
+
+  const handleEnviarModalRadicarDoc = async (e) => {
+    e.preventDefault();
+    if (!proceso) return;
+    if (!modalRadicarDoc.archivo) {
+      setModalRadicarDoc((prev) => ({
+        ...prev,
+        error: "Debes seleccionar un archivo para radicar.",
+      }));
+      return;
+    }
+    if (!modalRadicarDoc.nombre.trim()) {
+      setModalRadicarDoc((prev) => ({
+        ...prev,
+        error: "El nombre del documento es obligatorio.",
+      }));
+      return;
+    }
+
+    setModalRadicarDoc((prev) => ({ ...prev, subiendo: true, error: "" }));
+
+    const formData = new FormData();
+    formData.append("postulacion", proceso.id);
+    formData.append("nombre", modalRadicarDoc.nombre.trim());
+    formData.append("descripcion", modalRadicarDoc.descripcion.trim());
+    formData.append("archivo", modalRadicarDoc.archivo);
+
+    try {
+      await api.post("/documentos/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setExitoSubiendoDoc(true);
+      setModalRadicarDoc({
+        abierto: false,
+        nombre: "",
+        descripcion: "",
+        archivo: null,
+        subiendo: false,
+        error: "",
+      });
+      await cargar();
+      await cargarValidacion(proceso.id);
+    } catch (err) {
+      const detalle =
+        err.response?.data?.archivo?.[0] ||
+        err.response?.data?.detail ||
+        "No se pudo subir el documento. Por favor intenta de nuevo.";
+      setModalRadicarDoc((prev) => ({
+        ...prev,
+        subiendo: false,
+        error: detalle,
+      }));
+    }
+  };
+
+  const handleEnviarReemplazoDoc = async (e) => {
+    e.preventDefault();
+    if (!modalReemplazarDoc.archivo || !modalReemplazarDoc.docId) {
+      setModalReemplazarDoc((prev) => ({
+        ...prev,
+        error: "Debes seleccionar el archivo que sustituirá al actual.",
+      }));
+      return;
+    }
+
+    setModalReemplazarDoc((prev) => ({ ...prev, enviando: true, error: "" }));
+
+    const formData = new FormData();
+    formData.append("archivo", modalReemplazarDoc.archivo);
+    if (modalReemplazarDoc.descripcion !== undefined) {
+      formData.append("descripcion", modalReemplazarDoc.descripcion.trim());
+    }
+
+    try {
+      await api.patch(`/documentos/${modalReemplazarDoc.docId}/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setModalReemplazarDoc({
+        abierto: false,
+        docId: null,
+        docNombre: "",
+        descripcion: "",
+        archivo: null,
+        enviando: false,
+        error: "",
+      });
+      await cargar();
+      if (proceso?.id) {
+        await cargarValidacion(proceso.id);
+      }
+    } catch (err) {
+      const detalle =
+        err.response?.data?.archivo?.[0] ||
+        err.response?.data?.detail ||
+        "No se pudo reemplazar el archivo. Por favor intenta de nuevo.";
+      setModalReemplazarDoc((prev) => ({
+        ...prev,
+        enviando: false,
+        error: detalle,
+      }));
     }
   };
 
@@ -860,23 +1043,158 @@ export default function PanelEstudiante() {
 
             {/* Ficha descriptiva reglamentaria de la modalidad seleccionada */}
             {infoModalidad && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3.5">
-                <span className="text-3xl p-2 bg-white rounded-xl shadow-xs border border-blue-100 shrink-0">
-                  {infoModalidad.icono}
-                </span>
-                <div className="space-y-1 text-xs">
-                  <h4 className="font-black text-slate-900 text-sm">
-                    {infoModalidad.nombre} — Reglamentación ITM
-                  </h4>
-                  <p className="text-slate-700 leading-relaxed font-medium">
-                    {infoModalidad.descripcion}
-                  </p>
-                  {infoModalidad.requisitoClave && (
-                    <p className="font-bold text-itm-blue pt-1">
-                      📌 Requisito Clave: {infoModalidad.requisitoClave}
-                    </p>
+              <div className="bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/60 border border-blue-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl p-2 bg-white rounded-xl shadow-xs border border-blue-100 shrink-0">
+                      {infoModalidad.icono}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-black text-slate-900 text-sm sm:text-base">
+                          {infoModalidad.nombre}
+                        </h4>
+                        {infoModalidad.codigo && (
+                          <span className="text-[10px] font-mono font-bold bg-blue-100 text-itm-blue px-2 py-0.5 rounded-md">
+                            {infoModalidad.codigo}
+                          </span>
+                        )}
+                      </div>
+                      {infoModalidad.subtitulo && (
+                        <p className="text-xs font-semibold text-itm-purple">
+                          {infoModalidad.subtitulo}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  {infoModalidad.requiereSustentacion && (
+                    <span className="text-[11px] font-bold bg-white text-slate-700 px-3 py-1 rounded-full border border-slate-200 self-start sm:self-center shadow-xs">
+                      🎤 {infoModalidad.requiereSustentacion.includes("Sí") ? "Requiere Sustentación Pública" : "Evaluación por Comité / Informe"}
+                    </span>
                   )}
                 </div>
+
+                <p className="text-xs text-slate-700 leading-relaxed font-normal">
+                  {infoModalidad.queEs || infoModalidad.descripcion}
+                </p>
+
+                {infoModalidad.perfilEstudiante && (
+                  <div className="bg-white/90 rounded-xl p-3 border border-purple-100 text-xs shadow-2xs">
+                    <p className="font-bold text-itm-purple flex items-center gap-1.5 mb-1">
+                      <span>🎯</span> Perfil del Estudiante Idóneo:
+                    </p>
+                    <p className="text-slate-600 leading-relaxed">
+                      {infoModalidad.perfilEstudiante}
+                    </p>
+                  </div>
+                )}
+
+                {/* Ruta Paso a Paso para Graduarse */}
+                {infoModalidad.pasosProceso && infoModalidad.pasosProceso.length > 0 && (
+                  <div className="bg-white/90 rounded-xl p-4 border border-blue-200/80 shadow-2xs space-y-2">
+                    <p className="font-bold text-itm-blue text-xs uppercase tracking-wide flex items-center gap-1.5">
+                      <span>🧭</span> Ruta paso a paso para graduarte con esta modalidad:
+                    </p>
+                    <div className="space-y-1.5">
+                      {infoModalidad.pasosProceso.map((paso, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
+                          <span className="bg-itm-blue text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                            {idx + 1}
+                          </span>
+                          <span className="leading-snug font-medium">
+                            {paso.replace(/^\d+\.\s*/, '')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Requisitos para Obtener el Grado */}
+                {infoModalidad.requisitosParaGraduarse && infoModalidad.requisitosParaGraduarse.length > 0 && (
+                  <div className="bg-emerald-50/80 rounded-xl p-4 border border-emerald-200 shadow-2xs space-y-2">
+                    <p className="font-bold text-emerald-900 text-xs uppercase tracking-wide flex items-center gap-1.5">
+                      <span>✅</span> Requisitos indispensables para obtener el grado:
+                    </p>
+                    <ul className="space-y-1 text-xs text-emerald-950">
+                      {infoModalidad.requisitosParaGraduarse.map((req, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="text-emerald-600 font-bold">✔</span>
+                          <span className="leading-snug font-medium">{req}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Grilla de especificaciones reglamentarias */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  {infoModalidad.condicionesPrevias && (
+                    <div className="bg-white/90 rounded-xl p-3 border border-blue-100/80 text-xs shadow-2xs">
+                      <p className="font-bold text-amber-700 flex items-center gap-1.5 mb-1">
+                        <span>📊</span> Condiciones Previas y Créditos:
+                      </p>
+                      <p className="text-slate-600 leading-relaxed">
+                        {infoModalidad.condicionesPrevias}
+                      </p>
+                    </div>
+                  )}
+
+                  {infoModalidad.responsableAprobacion && (
+                    <div className="bg-white/90 rounded-xl p-3 border border-blue-100/80 text-xs shadow-2xs">
+                      <p className="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
+                        <span>⚖️</span> Instancia Evaluadora:
+                      </p>
+                      <p className="text-slate-600 leading-relaxed">
+                        {infoModalidad.responsableAprobacion}
+                      </p>
+                    </div>
+                  )}
+
+                  {infoModalidad.documentosRequeridos && infoModalidad.documentosRequeridos.length > 0 && (
+                    <div className="bg-white/90 rounded-xl p-3 border border-blue-100/80 text-xs shadow-2xs md:col-span-2">
+                      <p className="font-bold text-itm-purple flex items-center gap-1.5 mb-1.5">
+                        <span>📑</span> Documentos Obligatorios que debes radicar para esta modalidad:
+                      </p>
+                      <ul className="space-y-1 text-slate-700 list-disc list-inside">
+                        {infoModalidad.documentosRequeridos.map((doc, idx) => (
+                          <li key={idx} className="leading-snug">
+                            <span className="font-medium text-slate-800">{doc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {infoModalidad.entregablesFinales && (
+                    <div className="bg-white/90 rounded-xl p-3 border border-blue-100/80 text-xs shadow-2xs">
+                      <p className="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
+                        <span>📦</span> Entregable para Cierre y Grado:
+                      </p>
+                      <p className="text-slate-600 leading-relaxed font-medium">
+                        {infoModalidad.entregablesFinales}
+                      </p>
+                    </div>
+                  )}
+
+                  {infoModalidad.criteriosEvaluacion && (
+                    <div className="bg-white/90 rounded-xl p-3 border border-blue-100/80 text-xs shadow-2xs">
+                      <p className="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
+                        <span>🎯</span> Criterio de Aprobación:
+                      </p>
+                      <p className="text-slate-600 leading-relaxed">
+                        {infoModalidad.criteriosEvaluacion}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {infoModalidad.requisitoClave && (
+                  <div className="bg-amber-50/80 border border-amber-200/90 rounded-xl p-3 text-xs text-amber-900">
+                    <span className="font-bold">⚠️ Requisito Clave Ineludible: </span>
+                    {infoModalidad.requisitoClave}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -908,8 +1226,8 @@ export default function PanelEstudiante() {
               </label>
               <textarea
                 id="descripcion-input"
-                rows={3}
-                className="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all text-xs font-medium text-slate-800"
+                rows={6}
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all text-xs sm:text-sm font-medium text-slate-800 min-h-[140px] leading-relaxed resize-y shadow-inner"
                 value={descripcionPropuesta}
                 placeholder="Resume los objetivos, problema a resolver o justificación de tu opción de grado..."
                 onChange={(e) => setDescripcionPropuesta(e.target.value)}
@@ -1120,7 +1438,8 @@ export default function PanelEstudiante() {
       {/* VISTA 1: DETALLE DEL PROCESO SELECCIONADO */}
       {pestanaActual === "activo" && (
         <div className="space-y-6">
-
+          {/* Ficha Integral de Modalidad, Turno Activo y Progreso Oficial ITM */}
+          <FichaModalidadProyecto postulacion={proceso} esEstudiante={true} />
 
           <div className="glass-panel border-t-4 border-itm-blue rounded-2xl p-8 shadow-xl relative overflow-hidden">
             <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
@@ -1241,10 +1560,6 @@ export default function PanelEstudiante() {
               </div>
             )}
 
-            <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-              <Timeline estadoActual={proceso.estado} />
-            </div>
-
             {proceso.requiere_correccion && (
               <div role="alert" aria-live="assertive" className="mt-6 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg p-5 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -1267,14 +1582,36 @@ export default function PanelEstudiante() {
                         </p>
                       </div>
                     </div>
-                    <a
-                      href={obtenerUrlDocumento(proceso.archivo_correccion)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="shrink-0 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 px-3.5 py-2 rounded-lg shadow-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <span>📥 Descargar Documento con Correcciones ↗</span>
-                    </a>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDocumentoAVisualizar({
+                            nombre: "Documento con observaciones del evaluador",
+                            archivo: proceso.archivo_correccion,
+                            descripcion: "Observaciones y correcciones adjuntadas por el docente asesor",
+                            fecha: formatearFecha(proceso.subsanado_en || proceso.creada_en),
+                          })
+                        }
+                        className="bg-white hover:bg-purple-50 text-itm-purple border border-purple-200 px-3 py-2 rounded-lg shadow-xs font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Previsualizar archivo con correcciones"
+                      >
+                        <span>👁️ Ver</span>
+                      </button>
+                      <a
+                        href={obtenerUrlDocumento(proceso.archivo_correccion)}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          forzarDescargaArchivo(obtenerUrlDocumento(proceso.archivo_correccion), "Observaciones_Correccion");
+                        }}
+                        className="shrink-0 bg-white hover:bg-amber-50 text-amber-900 border border-amber-300 px-3 py-2 rounded-lg shadow-xs font-bold text-xs transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                      >
+                        <span>📥 Descargar</span>
+                      </a>
+                    </div>
                   </div>
                 )}
 
@@ -1400,18 +1737,41 @@ export default function PanelEstudiante() {
                 </p>
               </div>
 
-              {/* Botón para Cancelar/Eliminar postulación en estado inicial */}
-              {proceso.estado === "POSTULACION" && (
-                <button
-                  type="button"
-                  onClick={() => handleCancelarPostulacion(proceso.id)}
-                  className="self-start sm:self-center text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
-                  title="Cancelar y eliminar esta solicitud de grado"
-                >
-                  <span>🗑️</span>
-                  <span>Cancelar / Eliminar Solicitud</span>
-                </button>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Botón Principal para abrir el Modal Institucional de Radicación */}
+                {proceso.estado !== "FINALIZADO" && proceso.estado !== "RECHAZADO" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalRadicarDoc({
+                        abierto: true,
+                        nombre: "",
+                        descripcion: "",
+                        archivo: null,
+                        subiendo: false,
+                        error: "",
+                      })
+                    }
+                    className="bg-gradient-to-r from-itm-blue to-itm-purple hover:from-itm-blue-dark hover:to-itm-purple-light text-white text-xs font-black uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <span>📤</span>
+                    <span>Radicar / Anexar Documento</span>
+                  </button>
+                )}
+
+                {/* Botón para Cancelar/Eliminar postulación en estado inicial */}
+                {proceso.estado === "POSTULACION" && (
+                  <button
+                    type="button"
+                    onClick={() => handleCancelarPostulacion(proceso.id)}
+                    className="text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 border border-red-200 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                    title="Cancelar y eliminar esta solicitud de grado"
+                  >
+                    <span>🗑️</span>
+                    <span>Cancelar / Eliminar Solicitud</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Verificación de Requisitos Obligatorios */}
@@ -1435,11 +1795,17 @@ export default function PanelEstudiante() {
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          setNuevoDocNombre(docFaltante);
-                          if (inputNuevoDocRef.current) inputNuevoDocRef.current.focus();
-                        }}
-                        className="text-xs bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold px-3 py-1 rounded-lg transition-colors self-start sm:self-auto"
+                        onClick={() =>
+                          setModalRadicarDoc({
+                            abierto: true,
+                            nombre: docFaltante,
+                            descripcion: "",
+                            archivo: null,
+                            subiendo: false,
+                            error: "",
+                          })
+                        }
+                        className="text-xs bg-amber-200/80 hover:bg-amber-300 text-amber-950 font-bold px-3 py-1 rounded-lg transition-colors self-start sm:self-auto cursor-pointer"
                       >
                         + Radicar este requisito
                       </button>
@@ -1454,111 +1820,21 @@ export default function PanelEstudiante() {
               </div>
             ) : null}
 
-            {/* FORMULARIO CRUD: RADICAR O ANEXAR NUEVO DOCUMENTO */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/40 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-itm-blue uppercase tracking-wider flex items-center gap-2">
-                  <span>📤</span> Radicar / Anexar Nuevo Documento
-                </h4>
-                <span className="text-[11px] text-slate-500 font-medium">
-                  Formatos: PDF, DOCX, JPG, PNG (máx. 10 MB)
+            {exitoSubiendoDoc && (
+              <div role="status" className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between shadow-2xs">
+                <span className="flex items-center gap-2">
+                  <span>✓</span>
+                  <span>Documento radicado exitosamente en el expediente.</span>
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setExitoSubiendoDoc(false)}
+                  className="text-emerald-600 hover:text-emerald-900 text-xs font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
-
-              <form onSubmit={handleSubirNuevoDocumento} className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="nuevo-doc-nombre" className="block text-xs font-bold text-slate-700 mb-1">
-                      Nombre del documento o requisito:
-                    </label>
-                    <div className="space-y-1.5">
-                      {proceso.documentos_requeridos?.length > 0 && (
-                        <select
-                          value={nuevoDocNombre}
-                          onChange={(e) => setNuevoDocNombre(e.target.value)}
-                          className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:ring-2 focus:ring-itm-purple font-medium"
-                        >
-                          <option value="">-- Seleccionar requisito de la modalidad --</option>
-                          {proceso.documentos_requeridos.map((req, i) => (
-                            <option key={i} value={req}>
-                              {req}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      <input
-                        id="nuevo-doc-nombre"
-                        type="text"
-                        placeholder="O escribe el nombre del requisito..."
-                        value={nuevoDocNombre}
-                        onChange={(e) => setNuevoDocNombre(e.target.value)}
-                        className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-itm-purple"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="nuevo-doc-descripcion" className="block text-xs font-bold text-slate-700 mb-1">
-                      Descripción o notas del archivo (opcional):
-                    </label>
-                    <input
-                      id="nuevo-doc-descripcion"
-                      type="text"
-                      placeholder="Ej: Versión 1.0 firmada por el asesor y estudiante"
-                      value={nuevoDocDescripcion}
-                      onChange={(e) => setNuevoDocDescripcion(e.target.value)}
-                      className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-itm-purple"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
-                  <input
-                    ref={inputNuevoDocRef}
-                    type="file"
-                    accept=".pdf,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      setNuevoDocArchivo(f || null);
-                      if (f && !nuevoDocNombre) {
-                        setNuevoDocNombre(f.name.replace(/\.[^/.]+$/, ""));
-                      }
-                    }}
-                    className="flex-1 text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-itm-blue/10 file:text-itm-blue hover:file:bg-itm-blue/20 cursor-pointer"
-                  />
-
-                  <button
-                    type="submit"
-                    disabled={subiendoDoc || !nuevoDocArchivo}
-                    className="bg-gradient-to-r from-itm-blue to-itm-purple hover:from-itm-blue-dark hover:to-itm-purple-light disabled:opacity-50 text-white text-xs font-bold px-5 py-2.5 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 shrink-0"
-                  >
-                    {subiendoDoc ? (
-                      <>
-                        <span className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></span>
-                        <span>Subiendo...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>+</span>
-                        <span>Subir y Anexar Documento</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {errorSubiendoDoc && (
-                  <p role="alert" className="text-xs font-semibold text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                    ⚠️ {errorSubiendoDoc}
-                  </p>
-                )}
-
-                {exitoSubiendoDoc && (
-                  <p role="status" className="text-xs font-semibold text-emerald-700 bg-emerald-50 p-2 rounded border border-emerald-200">
-                    ✓ Documento radicado exitosamente en el expediente.
-                  </p>
-                )}
-              </form>
-            </div>
+            )}
 
             {/* LISTADO Y GESTIÓN DE ARCHIVOS RADICADOS */}
             <div>
@@ -1575,7 +1851,18 @@ export default function PanelEstudiante() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-base shrink-0">📄</span>
-                          <span className="text-sm font-bold text-slate-800 truncate" title={doc.nombre}>
+                          <span
+                            className="text-sm font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate"
+                            title={`Haz clic para previsualizar: ${doc.nombre}`}
+                            onClick={() =>
+                              setDocumentoAVisualizar({
+                                nombre: doc.nombre,
+                                archivo: doc.archivo,
+                                descripcion: doc.descripcion,
+                                fecha: formatearFecha(doc.subido_en),
+                              })
+                            }
+                          >
                             {doc.nombre}
                           </span>
                         </div>
@@ -1636,27 +1923,73 @@ export default function PanelEstudiante() {
                         </p>
                       </div>
 
-                      {/* Acciones del Documento: Ver/Descargar y Eliminar */}
-                      <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+                      {/* Acciones del Documento: Previsualizar, Descargar y Eliminar */}
+                      <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDocumentoAVisualizar({
+                              nombre: doc.nombre,
+                              archivo: doc.archivo,
+                              descripcion: doc.descripcion,
+                              fecha: formatearFecha(doc.subido_en),
+                            })
+                          }
+                          aria-label={`Previsualizar documento ${doc.nombre}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-xs cursor-pointer"
+                          title="Previsualizar documento en pantalla sin descargar"
+                        >
+                          <span>👁️</span>
+                          <span>Ver</span>
+                        </button>
                         <a
                           href={obtenerUrlDocumento(doc.archivo)}
+                          download
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs font-bold text-itm-blue hover:text-itm-purple bg-white px-3 py-1.5 rounded-lg border border-slate-200 hover:border-itm-purple transition-all shadow-xs"
                           aria-label={`Descargar o ver documento ${doc.nombre}`}
+                          title="Descargar archivo a tu dispositivo"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
+                          }}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-xs cursor-pointer"
                         >
-                          Ver / Descargar ↗
+                          <span>⬇️</span>
+                          <span className="hidden sm:inline">Descargar</span>
                         </a>
 
-                        {(proceso.estado === "POSTULACION" || proceso.requiere_correccion) && (
-                          <button
-                            type="button"
-                            onClick={() => handleEliminarDocumento(doc.id, doc.nombre)}
-                            className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 transition-all shadow-xs"
-                            title="Eliminar este archivo del expediente"
-                          >
-                            🗑️
-                          </button>
+                        {proceso.estado !== "FINALIZADO" && proceso.estado !== "RECHAZADO" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setModalReemplazarDoc({
+                                  abierto: true,
+                                  docId: doc.id,
+                                  docNombre: doc.nombre,
+                                  descripcion: doc.descripcion || "",
+                                  archivo: null,
+                                  enviando: false,
+                                  error: "",
+                                })
+                              }
+                              className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg border border-blue-200 transition-all shadow-xs cursor-pointer"
+                              title="Reemplazar o sustituir este archivo por una nueva versión"
+                            >
+                              <span>🔄</span>
+                              <span className="hidden sm:inline">Reemplazar</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleEliminarDocumento(doc.id, doc.nombre)}
+                              className="text-xs font-bold text-red-600 hover:text-red-800 bg-white hover:bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 transition-all shadow-xs cursor-pointer"
+                              title="Eliminar este archivo del expediente"
+                            >
+                              🗑️
+                            </button>
+                          </>
                         )}
                       </div>
                     </li>
@@ -1694,14 +2027,37 @@ export default function PanelEstudiante() {
                     <span className="text-purple-900 font-medium flex items-center gap-1.5">
                       <span>📎</span> Archivo adjunto de la citación
                     </span>
-                    <a
-                      href={obtenerUrlDocumento(proceso.archivo_sustentacion)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs font-bold text-itm-blue hover:text-itm-purple hover:underline bg-white px-4 py-2 rounded-md border border-purple-200 shadow-2xs text-center"
-                    >
-                      Ver Documento ↗
-                    </a>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDocumentoAVisualizar({
+                            nombre: "Citación a Sustentación de Grado",
+                            archivo: proceso.archivo_sustentacion,
+                            descripcion: proceso.mensaje_sustentacion,
+                            fecha: formatearFecha(proceso.creada_en),
+                          })
+                        }
+                        className="text-xs font-bold text-itm-purple bg-white hover:bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-md transition-colors"
+                        title="Previsualizar citación"
+                      >
+                        👁️ Ver
+                      </button>
+                      <a
+                        href={obtenerUrlDocumento(proceso.archivo_sustentacion)}
+                        download
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          forzarDescargaArchivo(obtenerUrlDocumento(proceso.archivo_sustentacion), "Citacion_Sustentacion");
+                        }}
+                        className="text-xs font-bold text-slate-700 hover:text-itm-blue bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+                        title="Descargar citación"
+                      >
+                        ⬇️ Descargar
+                      </a>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1900,14 +2256,36 @@ export default function PanelEstudiante() {
                               className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs"
                             >
                               <span className="truncate font-semibold text-slate-700">📄 {doc.nombre}</span>
-                              <a
-                                href={obtenerUrlDocumento(doc.archivo)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="shrink-0 text-itm-blue hover:text-itm-purple font-bold bg-white px-2.5 py-1 rounded border border-slate-200 ml-2"
-                              >
-                                Ver ↗
-                              </a>
+                              <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setDocumentoAVisualizar({
+                                      nombre: doc.nombre,
+                                      archivo: doc.archivo,
+                                      fecha: formatearFecha(doc.subido_en),
+                                    })
+                                  }
+                                  className="text-xs font-bold text-itm-purple bg-purple-50 hover:bg-itm-purple hover:text-white px-2 py-1 rounded border border-purple-200 transition-colors"
+                                  title="Previsualizar archivo histórico"
+                                >
+                                  👁️ Ver
+                                </button>
+                                <a
+                                  href={obtenerUrlDocumento(doc.archivo)}
+                                  download
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
+                                  }}
+                                  className="text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 px-2 py-1 rounded border border-slate-200 transition-colors cursor-pointer"
+                                  title="Descargar archivo histórico"
+                                >
+                                  ⬇️ Descargar
+                                </a>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -1994,7 +2372,7 @@ export default function PanelEstudiante() {
           aria-modal="true"
           aria-labelledby="modal-subsanacion-titulo"
         >
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-xl w-full overflow-hidden transition-all transform animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-3xl w-full overflow-hidden transition-all transform animate-in zoom-in-95 duration-200">
             {/* Encabezado Institucional */}
             <div className="bg-gradient-to-r from-itm-blue-dark via-itm-blue to-indigo-900 text-white p-6 flex items-start justify-between gap-4">
               <div>
@@ -2070,7 +2448,7 @@ export default function PanelEstudiante() {
                 </div>
                 <textarea
                   id="modal-subsanacion-mensaje"
-                  rows={4}
+                  rows={8}
                   required
                   placeholder="Detalla de forma clara qué cambios realizaste en el documento o propuesta según las observaciones recibidas..."
                   value={modalSubsanacion.mensaje}
@@ -2081,7 +2459,7 @@ export default function PanelEstudiante() {
                       error: "",
                     }))
                   }
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-itm-purple placeholder:text-slate-400 font-medium"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-itm-purple placeholder:text-slate-400 font-medium min-h-[190px] leading-relaxed resize-y shadow-inner"
                 />
               </div>
 
@@ -2247,6 +2625,310 @@ export default function PanelEstudiante() {
           </div>
         </div>
       )}
+      {/* MODAL INSTITUCIONAL PARA RADICAR / ANEXAR NUEVO DOCUMENTO */}
+      {modalRadicarDoc.abierto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+            {/* Cabecera oscura institucional (como la de los evaluadores) */}
+            <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 text-white p-6 relative">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <span className="inline-block bg-white/10 text-blue-200 border border-white/20 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                  {obtenerDestinatarioDocumento(proceso).pill}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalRadicarDoc((prev) => ({ ...prev, abierto: false }))
+                  }
+                  className="text-slate-400 hover:text-white p-1 rounded-lg text-lg transition-colors cursor-pointer"
+                  title="Cerrar ventana"
+                >
+                  ✕
+                </button>
+              </div>
+              <h3 className="text-xl font-black text-white">
+                Radicar Documento en tu Expediente
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 truncate">
+                Proyecto: {proceso?.titulo_proyecto || proceso?.modalidad_nombre}
+              </p>
+            </div>
+
+            {/* Caja de Información del Destinatario */}
+            <div className="p-6 space-y-4">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl flex items-start gap-3 text-xs">
+                <span className="text-2xl shrink-0 p-1 bg-white rounded-xl shadow-2xs border border-blue-100">
+                  {obtenerDestinatarioDocumento(proceso).icono}
+                </span>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                    A quién va dirigido:
+                  </span>
+                  <strong className="text-itm-blue font-black text-sm block">
+                    {obtenerDestinatarioDocumento(proceso).titulo}
+                  </strong>
+                  <p className="text-slate-600 mt-0.5 text-xs">
+                    {obtenerDestinatarioDocumento(proceso).subtitulo}
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleEnviarModalRadicarDoc} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="modal-doc-nombre"
+                    className="block text-xs font-bold text-slate-700 mb-1"
+                  >
+                    Nombre del documento o requisito reglamentario:
+                  </label>
+                  {proceso?.documentos_requeridos?.length > 0 && (
+                    <select
+                      value={modalRadicarDoc.nombre}
+                      onChange={(e) =>
+                        setModalRadicarDoc((prev) => ({
+                          ...prev,
+                          nombre: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-700 focus:ring-2 focus:ring-itm-purple mb-2 font-medium"
+                    >
+                      <option value="">-- Seleccionar requisito sugerido --</option>
+                      {proceso.documentos_requeridos.map((req, i) => (
+                        <option key={i} value={req}>
+                          {req}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <input
+                    id="modal-doc-nombre"
+                    type="text"
+                    value={modalRadicarDoc.nombre}
+                    onChange={(e) =>
+                      setModalRadicarDoc((prev) => ({
+                        ...prev,
+                        nombre: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: Propuesta técnica firmada, Informe de avance..."
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-itm-purple shadow-2xs"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="modal-doc-descripcion"
+                    className="block text-xs font-bold text-slate-700 mb-1"
+                  >
+                    Mensaje o nota explicativa para el destinatario (opcional):
+                  </label>
+                  <textarea
+                    id="modal-doc-descripcion"
+                    rows={5}
+                    value={modalRadicarDoc.descripcion}
+                    onChange={(e) =>
+                      setModalRadicarDoc((prev) => ({
+                        ...prev,
+                        descripcion: e.target.value,
+                      }))
+                    }
+                    placeholder="Ej: Señor asesor, adjunto el avance con el cronograma y diagrama solicitado..."
+                    className="w-full bg-white border border-slate-300 rounded-xl p-4 text-xs sm:text-sm text-slate-800 focus:ring-2 focus:ring-itm-purple shadow-2xs min-h-[130px] leading-relaxed resize-y"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Archivo a radicar (PDF, DOCX, JPG o PNG — máx. 10 MB):
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      setModalRadicarDoc((prev) => ({
+                        ...prev,
+                        archivo: f || null,
+                        nombre: prev.nombre || (f ? f.name.replace(/\.[^/.]+$/, "") : ""),
+                      }));
+                    }}
+                    className="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-itm-blue/10 file:text-itm-blue hover:file:bg-itm-blue/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50"
+                  />
+                </div>
+
+                {modalRadicarDoc.error && (
+                  <p
+                    role="alert"
+                    className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200"
+                  >
+                    ⚠️ {modalRadicarDoc.error}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalRadicarDoc((prev) => ({ ...prev, abierto: false }))
+                    }
+                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={modalRadicarDoc.subiendo || !modalRadicarDoc.archivo}
+                    className="px-5 py-2.5 bg-gradient-to-r from-itm-blue to-itm-purple hover:from-itm-blue-dark hover:to-itm-purple-light disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    {modalRadicarDoc.subiendo ? (
+                      <>
+                        <span className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></span>
+                        <span>Radicando archivo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>📤</span>
+                        <span>Radicar y Enviar Documento</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL PARA REEMPLAZAR ARCHIVO DE DOCUMENTO */}
+      {modalReemplazarDoc.abierto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 text-white p-6 relative">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <span className="inline-block bg-white/10 text-blue-200 border border-white/20 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
+                  ACTUALIZACIÓN DE ARCHIVO
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalReemplazarDoc((prev) => ({ ...prev, abierto: false }))
+                  }
+                  className="text-slate-400 hover:text-white p-1 rounded-lg text-lg transition-colors cursor-pointer"
+                  title="Cerrar ventana"
+                >
+                  ✕
+                </button>
+              </div>
+              <h3 className="text-xl font-black text-white">
+                Reemplazar Documento
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 truncate">
+                Documento actual: <strong>{modalReemplazarDoc.docNombre}</strong>
+              </p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-slate-600 leading-relaxed bg-blue-50/70 p-3.5 rounded-xl border border-blue-200/60">
+                Selecciona el nuevo archivo (PDF, Word o imagen) que sustituirá de forma inmediata la versión anterior en tu expediente institucional. Puedes además actualizar la descripción o notas explicativas del archivo.
+              </p>
+
+              <form onSubmit={handleEnviarReemplazoDoc} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
+                    Nuevo archivo de reemplazo (máx. 10 MB):
+                  </label>
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      setModalReemplazarDoc((prev) => ({
+                        ...prev,
+                        archivo: f || null,
+                      }));
+                    }}
+                    className="block w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-itm-blue/10 file:text-itm-blue hover:file:bg-itm-blue/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="modal-reemplazar-descripcion"
+                    className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5"
+                  >
+                    Descripción o Nota de la Nueva Versión (Opcional):
+                  </label>
+                  <textarea
+                    id="modal-reemplazar-descripcion"
+                    rows={4}
+                    value={modalReemplazarDoc.descripcion}
+                    onChange={(e) =>
+                      setModalReemplazarDoc((prev) => ({
+                        ...prev,
+                        descripcion: e.target.value,
+                      }))
+                    }
+                    placeholder="Indica qué cambios o mejoras incluye esta versión (ej: Se corrigieron las observaciones de la sección 3)..."
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 min-h-[110px] leading-relaxed resize-y shadow-inner"
+                  />
+                </div>
+
+                {modalReemplazarDoc.error && (
+                  <p
+                    role="alert"
+                    className="text-xs font-bold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200"
+                  >
+                    ⚠️ {modalReemplazarDoc.error}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalReemplazarDoc((prev) => ({ ...prev, abierto: false }))
+                    }
+                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={modalReemplazarDoc.enviando || !modalReemplazarDoc.archivo}
+                    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    {modalReemplazarDoc.enviando ? (
+                      <>
+                        <span className="animate-spin rounded-full h-3.5 w-3.5 border-b-2 border-white"></span>
+                        <span>Actualizando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>💾</span>
+                        <span>Guardar y Reemplazar Archivo</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Previsualización y Descarga de Documentos */}
+      <ModalVisorDocumento
+        documento={documentoAVisualizar}
+        onCerrar={() => setDocumentoAVisualizar(null)}
+      />
     </div>
   );
 }

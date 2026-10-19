@@ -99,5 +99,15 @@ urlpatterns = [
     path("api/", include("core.urls")),
 ]
 
+from django.urls import re_path
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.views.static import serve
+
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [
+        re_path(
+            r"^media/(?P<path>.*)$",
+            xframe_options_exempt(serve),
+            {"document_root": settings.MEDIA_ROOT},
+        ),
+    ]

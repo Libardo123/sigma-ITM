@@ -1,0 +1,435 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 860" width="100%" height="100%" style="background:#070b14; font-family:'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="erBgGlow" cx="50%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#111936" />
+      <stop offset="100%" stop-color="#060913" />
+    </radialGradient>
+
+    <!-- Table Header Gradients -->
+    <linearGradient id="userGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+    <linearGradient id="postulacionGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="modalidadGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <linearGradient id="docGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <linearGradient id="historyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#db2777" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="tableShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+
+    <!-- Relationship Markers -->
+    <marker id="circleEnd" markerWidth="8" markerHeight="8" refX="4" refY="4">
+      <circle cx="4" cy="4" r="3" fill="#64748b" stroke="#94a3b8" stroke-width="1.5" />
+    </marker>
+    <marker id="crowEnd" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M 1 1 L 9 6 L 1 11 M 9 1 L 9 11" fill="none" stroke="#38bdf8" stroke-width="1.5" />
+    </marker>
+    <marker id="crowEndGreen" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M 1 1 L 9 6 L 1 11 M 9 1 L 9 11" fill="none" stroke="#10b981" stroke-width="1.5" />
+    </marker>
+    <marker id="crowEndPurple" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M 1 1 L 9 6 L 1 11 M 9 1 L 9 11" fill="none" stroke="#a855f7" stroke-width="1.5" />
+    </marker>
+    <marker id="crowEndPink" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto">
+      <path d="M 1 1 L 9 6 L 1 11 M 9 1 L 9 11" fill="none" stroke="#f43f5e" stroke-width="1.5" />
+    </marker>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="100%" height="100%" fill="url(#erBgGlow)" />
+  
+  <!-- Subtle Dot Grid -->
+  <g opacity="0.05" fill="#ffffff">
+    <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" />
+    </pattern>
+    <rect width="100%" height="100%" fill="url(#dots)" />
+  </g>
+
+  <!-- Title & Metadata Header -->
+  <g transform="translate(60, 40)">
+    <rect x="0" y="0" width="168" height="26" rx="13" fill="#1e293b" stroke="#334155" stroke-width="1" />
+    <circle cx="12" cy="13" r="5" fill="#3b82f6" />
+    <text x="26" y="17" fill="#94a3b8" font-size="11" font-weight="600" letter-spacing="1">MODELO DE DATOS</text>
+
+    <text x="0" y="56" fill="#f8fafc" font-size="24" font-weight="800" letter-spacing="-0.5">Diagrama Entidad-Relación (Relational Schema)</text>
+    <text x="0" y="78" fill="#64748b" font-size="13">Dominio de datos de SIGMA-ITM: Identidad RBAC, Modalidades Académicas, FSM y Trazabilidad Inmutable</text>
+  </g>
+
+  <!-- Legend Box (Top Right) -->
+  <g transform="translate(930, 36)">
+    <rect x="0" y="0" width="310" height="74" rx="10" fill="#0c1220" stroke="#1e293b" stroke-width="1" />
+    <text x="14" y="20" fill="#94a3b8" font-size="11" font-weight="bold">CONVENCIONES DEL MODELO</text>
+    
+    <g transform="translate(14, 30)">
+      <rect x="0" y="2" width="22" height="14" rx="3" fill="#dc2626" />
+      <text x="11" y="13" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">PK</text>
+      <text x="30" y="14" fill="#cbd5e1" font-size="10.5">Clave Primaria</text>
+
+      <rect x="120" y="2" width="22" height="14" rx="3" fill="#2563eb" />
+      <text x="131" y="13" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="150" y="14" fill="#cbd5e1" font-size="10.5">Clave Foránea</text>
+    </g>
+
+    <g transform="translate(14, 52)">
+      <circle cx="6" cy="7" r="4" fill="#10b981" />
+      <text x="18" y="11" fill="#94a3b8" font-size="10">Integridad Referencial</text>
+      <text x="150" y="11" fill="#94a3b8" font-size="10">1 : N (Uno a Muchos)</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- TABLE 1: USUARIO (Top Left)                                    -->
+  <!-- ============================================================== -->
+  <g transform="translate(50, 140)">
+    <rect x="0" y="0" width="310" height="260" rx="12" fill="#0b1120" stroke="#1e3a5f" stroke-width="1.5" filter="url(#tableShadow)" />
+    
+    <!-- Table Header -->
+    <path d="M 0 12 Q 0 0 12 0 L 298 0 Q 310 0 310 12 L 310 40 L 0 40 Z" fill="url(#userGrad)" />
+    <text x="16" y="26" fill="#ffffff" font-size="14" font-weight="700">Usuario</text>
+    <text x="290" y="25" fill="#dbeafe" font-size="11" text-anchor="end">auth_user</text>
+
+    <!-- Fields -->
+    <!-- id -->
+    <g transform="translate(14, 55)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#dc2626" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">PK</text>
+      <text x="32" y="13" fill="#f8fafc" font-size="12" font-weight="600">id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">BigInt (Auto)</text>
+    </g>
+    <!-- username -->
+    <g transform="translate(14, 85)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">username</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(150) [U]</text>
+    </g>
+    <!-- rol -->
+    <g transform="translate(14, 115)">
+      <text x="32" y="13" fill="#38bdf8" font-size="12" font-weight="600">rol</text>
+      <text x="280" y="13" fill="#38bdf8" font-size="10.5" text-anchor="end">ENUM (4 roles)</text>
+      <text x="32" y="28" fill="#64748b" font-size="9.5">ESTUDIANTE | ASESOR | COMITE | ADMIN</text>
+    </g>
+    <!-- cedula -->
+    <g transform="translate(14, 153)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">cedula</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(20) [U]</text>
+    </g>
+    <!-- programa_academico -->
+    <g transform="translate(14, 183)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">programa_academico</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(120)</text>
+    </g>
+    <!-- is_active -->
+    <g transform="translate(14, 213)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">is_active</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Boolean (Admin Apr.)</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- TABLE 2: MODALIDAD (Bottom Left)                               -->
+  <!-- ============================================================== -->
+  <g transform="translate(50, 480)">
+    <rect x="0" y="0" width="310" height="230" rx="12" fill="#0b1120" stroke="#78350f" stroke-width="1.5" filter="url(#tableShadow)" />
+    
+    <!-- Table Header -->
+    <path d="M 0 12 Q 0 0 12 0 L 298 0 Q 310 0 310 12 L 310 40 L 0 40 Z" fill="url(#modalidadGrad)" />
+    <text x="16" y="26" fill="#ffffff" font-size="14" font-weight="700">Modalidad</text>
+    <text x="290" y="25" fill="#fef3c7" font-size="11" text-anchor="end">10 Tipologías ITM</text>
+
+    <!-- Fields -->
+    <!-- id -->
+    <g transform="translate(14, 55)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#dc2626" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">PK</text>
+      <text x="32" y="13" fill="#f8fafc" font-size="12" font-weight="600">id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Int (Auto)</text>
+    </g>
+    <!-- nombre -->
+    <g transform="translate(14, 85)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">nombre</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(100)</text>
+    </g>
+    <!-- codigo -->
+    <g transform="translate(14, 115)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">codigo</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(20) [U]</text>
+    </g>
+    <!-- descripcion -->
+    <g transform="translate(14, 145)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">descripcion</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Text</text>
+    </g>
+    <!-- activa -->
+    <g transform="translate(14, 175)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">activa</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Boolean (default True)</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- TABLE 3: POSTULACION (Center - Core Entity)                   -->
+  <!-- ============================================================== -->
+  <g transform="translate(480, 140)">
+    <rect x="0" y="0" width="370" height="490" rx="12" fill="#09151e" stroke="#047857" stroke-width="1.8" filter="url(#tableShadow)" />
+    
+    <!-- Table Header -->
+    <path d="M 0 12 Q 0 0 12 0 L 358 0 Q 370 0 370 12 L 370 42 L 0 42 Z" fill="url(#postulacionGrad)" />
+    <text x="18" y="27" fill="#ffffff" font-size="15" font-weight="700">Postulacion</text>
+    <text x="350" y="26" fill="#a7f3d0" font-size="11" text-anchor="end">Núcleo Transaccional FSM</text>
+
+    <!-- Fields -->
+    <!-- id PK -->
+    <g transform="translate(16, 58)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#dc2626" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">PK</text>
+      <text x="34" y="13" fill="#f8fafc" font-size="12.5" font-weight="600">id</text>
+      <text x="338" y="13" fill="#a7f3d0" font-size="11" text-anchor="end">UUID (v4)</text>
+    </g>
+
+    <!-- estudiante_id FK -->
+    <g transform="translate(16, 92)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#2563eb" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="34" y="13" fill="#60a5fa" font-size="12.5" font-weight="600">estudiante_id</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Usuario.id (Radicador)</text>
+    </g>
+
+    <!-- asesor_id FK -->
+    <g transform="translate(16, 126)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#2563eb" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="34" y="13" fill="#60a5fa" font-size="12.5" font-weight="600">asesor_id</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Usuario.id (Null=True)</text>
+    </g>
+
+    <!-- modalidad_id FK -->
+    <g transform="translate(16, 160)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#2563eb" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="34" y="13" fill="#60a5fa" font-size="12.5" font-weight="600">modalidad_id</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Modalidad.id</text>
+    </g>
+
+    <!-- Line separator -->
+    <line x1="16" y1="188" x2="354" y2="188" stroke="#134e4a" stroke-width="1" />
+
+    <!-- titulo_proyecto -->
+    <g transform="translate(16, 204)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">titulo_proyecto</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(255)</text>
+    </g>
+
+    <!-- estado (FSM) -->
+    <g transform="translate(16, 238)">
+      <text x="34" y="13" fill="#34d399" font-size="12.5" font-weight="700">estado</text>
+      <text x="338" y="13" fill="#34d399" font-size="11" text-anchor="end">ENUM (7 estados FSM)</text>
+      <text x="34" y="28" fill="#6ee7b7" font-size="9.5">POSTULACION...SUSTENTACION...FINALIZADO</text>
+    </g>
+
+    <!-- requiere_correccion -->
+    <g transform="translate(16, 280)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">requiere_correccion</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Boolean (default False)</text>
+    </g>
+
+    <!-- observacion_correccion -->
+    <g transform="translate(16, 314)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">observacion_correccion</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Text (Blank=True)</text>
+    </g>
+
+    <!-- fecha_sustentacion -->
+    <g transform="translate(16, 348)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">fecha_sustentacion</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">DateTime (Null=True)</text>
+    </g>
+
+    <!-- lugar_sustentacion -->
+    <g transform="translate(16, 382)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">lugar_sustentacion</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(150)</text>
+    </g>
+
+    <!-- fecha_creacion / fecha_actualizacion -->
+    <g transform="translate(16, 416)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">fecha_creacion</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">DateTime (AutoAdd)</text>
+    </g>
+    <g transform="translate(16, 446)">
+      <text x="34" y="13" fill="#cbd5e1" font-size="12">fecha_actualizacion</text>
+      <text x="338" y="13" fill="#94a3b8" font-size="11" text-anchor="end">DateTime (AutoNow)</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- TABLE 4: DOCUMENTO (Top Right)                                 -->
+  <!-- ============================================================== -->
+  <g transform="translate(940, 140)">
+    <rect x="0" y="0" width="310" height="260" rx="12" fill="#120e24" stroke="#581c87" stroke-width="1.5" filter="url(#tableShadow)" />
+    
+    <!-- Table Header -->
+    <path d="M 0 12 Q 0 0 12 0 L 298 0 Q 310 0 310 12 L 310 40 L 0 40 Z" fill="url(#docGrad)" />
+    <text x="16" y="26" fill="#ffffff" font-size="14" font-weight="700">Documento</text>
+    <text x="290" y="25" fill="#ede9fe" font-size="11" text-anchor="end">Anexos &amp; Evidencias</text>
+
+    <!-- Fields -->
+    <!-- id -->
+    <g transform="translate(14, 55)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#dc2626" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">PK</text>
+      <text x="32" y="13" fill="#f8fafc" font-size="12" font-weight="600">id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Int (Auto)</text>
+    </g>
+    <!-- postulacion_id FK -->
+    <g transform="translate(14, 85)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#2563eb" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="32" y="13" fill="#c084fc" font-size="12" font-weight="600">postulacion_id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">UUID (CASCADE)</text>
+    </g>
+    <!-- nombre -->
+    <g transform="translate(14, 115)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">nombre</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(100)</text>
+    </g>
+    <!-- archivo -->
+    <g transform="translate(14, 145)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">archivo</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">FileField (Path seguro)</text>
+    </g>
+    <!-- mime_type -->
+    <g transform="translate(14, 175)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">mime_type</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(50) [Magic]</text>
+    </g>
+    <!-- tamano_bytes -->
+    <g transform="translate(14, 205)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">tamano_bytes</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">PositiveInt</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- TABLE 5: HISTORIALESTADO (Bottom Right)                        -->
+  <!-- ============================================================== -->
+  <g transform="translate(940, 450)">
+    <rect x="0" y="0" width="310" height="270" rx="12" fill="#180e1b" stroke="#831843" stroke-width="1.5" filter="url(#tableShadow)" />
+    
+    <!-- Table Header -->
+    <path d="M 0 12 Q 0 0 12 0 L 298 0 Q 310 0 310 12 L 310 40 L 0 40 Z" fill="url(#historyGrad)" />
+    <text x="16" y="26" fill="#ffffff" font-size="14" font-weight="700">HistorialEstado</text>
+    <text x="290" y="25" fill="#fce7f3" font-size="11" text-anchor="end">Auditoría Inmutable</text>
+
+    <!-- Fields -->
+    <!-- id -->
+    <g transform="translate(14, 55)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#dc2626" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">PK</text>
+      <text x="32" y="13" fill="#f8fafc" font-size="12" font-weight="600">id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Int (Auto)</text>
+    </g>
+    <!-- postulacion_id FK -->
+    <g transform="translate(14, 85)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#2563eb" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="32" y="13" fill="#f472b6" font-size="12" font-weight="600">postulacion_id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">UUID (CASCADE)</text>
+    </g>
+    <!-- usuario_id FK -->
+    <g transform="translate(14, 115)">
+      <rect x="0" y="0" width="24" height="16" rx="3" fill="#2563eb" />
+      <text x="12" y="12" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">FK</text>
+      <text x="32" y="13" fill="#f472b6" font-size="12" font-weight="600">usuario_id</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Usuario.id (Actor)</text>
+    </g>
+    <!-- estado_anterior / nuevo -->
+    <g transform="translate(14, 145)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">estado_anterior</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(30)</text>
+    </g>
+    <g transform="translate(14, 175)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">estado_nuevo</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">VarChar(30)</text>
+    </g>
+    <!-- observacion -->
+    <g transform="translate(14, 205)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">observacion</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">Text (Obligatoria)</text>
+    </g>
+    <!-- fecha -->
+    <g transform="translate(14, 235)">
+      <text x="32" y="13" fill="#cbd5e1" font-size="12">fecha</text>
+      <text x="280" y="13" fill="#94a3b8" font-size="11" text-anchor="end">DateTime (AutoAdd)</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- RELATIONSHIP CONNECTORS & LABELS                               -->
+  <!-- ============================================================== -->
+
+  <!-- Rel 1: Usuario -> Postulacion (Estudiante) -->
+  <g>
+    <path d="M 360 230 L 480 230" fill="none" stroke="#38bdf8" stroke-width="2" marker-start="url(#circleEnd)" marker-end="url(#crowEnd)" />
+    <rect x="375" y="208" width="90" height="18" rx="4" fill="#08233a" stroke="#0284c7" stroke-width="0.8" />
+    <text x="420" y="221" fill="#7dd3fc" font-size="9.5" text-anchor="middle" font-weight="600">estudiante radica (1:N)</text>
+  </g>
+
+  <!-- Rel 2: Usuario -> Postulacion (Asesor) -->
+  <g>
+    <path d="M 360 265 L 420 265 L 420 265 L 480 265" fill="none" stroke="#818cf8" stroke-width="1.8" stroke-dasharray="4,3" marker-start="url(#circleEnd)" marker-end="url(#crowEnd)" />
+    <rect x="375" y="272" width="90" height="18" rx="4" fill="#1e1842" stroke="#6366f1" stroke-width="0.8" />
+    <text x="420" y="285" fill="#c7d2fe" font-size="9.5" text-anchor="middle" font-weight="600">asesor supervisa (0..1:N)</text>
+  </g>
+
+  <!-- Rel 3: Modalidad -> Postulacion -->
+  <g>
+    <path d="M 360 550 L 420 550 L 420 300 L 480 300" fill="none" stroke="#f59e0b" stroke-width="2" marker-start="url(#circleEnd)" marker-end="url(#crowEnd)" />
+    <rect x="370" y="420" width="85" height="18" rx="4" fill="#361f06" stroke="#d97706" stroke-width="0.8" />
+    <text x="412" y="433" fill="#fde68a" font-size="9.5" text-anchor="middle" font-weight="600">tipifica trámite (1:N)</text>
+  </g>
+
+  <!-- Rel 4: Postulacion -> Documento -->
+  <g>
+    <path d="M 850 230 L 940 230" fill="none" stroke="#a855f7" stroke-width="2" marker-start="url(#circleEnd)" marker-end="url(#crowEndPurple)" />
+    <rect x="855" y="208" width="80" height="18" rx="4" fill="#2d134d" stroke="#7e22ce" stroke-width="0.8" />
+    <text x="895" y="221" fill="#e9d5ff" font-size="9.5" text-anchor="middle" font-weight="600">anexos (1:N)</text>
+  </g>
+
+  <!-- Rel 5: Postulacion -> HistorialEstado -->
+  <g>
+    <path d="M 850 500 L 940 500" fill="none" stroke="#ec4899" stroke-width="2" marker-start="url(#circleEnd)" marker-end="url(#crowEndPink)" />
+    <rect x="855" y="478" width="80" height="18" rx="4" fill="#3b0d23" stroke="#be185d" stroke-width="0.8" />
+    <text x="895" y="491" fill="#fbcfe8" font-size="9.5" text-anchor="middle" font-weight="600">audita (1:N)</text>
+  </g>
+
+  <!-- Rel 6: Usuario -> HistorialEstado (Bottom Path) -->
+  <g>
+    <path d="M 205 400 L 205 760 L 1095 760 L 1095 720" fill="none" stroke="#f43f5e" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#crowEndPink)" />
+    <rect x="580" y="748" width="135" height="20" rx="4" fill="#3b0d23" stroke="#e11d48" stroke-width="0.8" />
+    <text x="647" y="762" fill="#ffe4e6" font-size="10" text-anchor="middle" font-weight="600">registra acción de usuario (1:N)</text>
+  </g>
+
+  <!-- Integrity & Business Rules Box (Bottom Left/Center) -->
+  <g transform="translate(50, 785)">
+    <rect x="0" y="0" width="1200" height="42" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1" />
+    <text x="20" y="26" fill="#38bdf8" font-size="11" font-weight="bold">REGLAS DE INTEGRIDAD:</text>
+    <text x="180" y="26" fill="#94a3b8" font-size="11">1. Toda transición de estado inserta de forma inmutable un registro en `HistorialEstado` vía Django Signals.</text>
+    <text x="800" y="26" fill="#94a3b8" font-size="11">2. Borrado de Postulacion cascada en Documentos y Auditoría.</text>
+  </g>
+</svg>

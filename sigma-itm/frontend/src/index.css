@@ -12,4 +12,25 @@
   .glass-panel {
     @apply bg-white/90 backdrop-blur-md border border-white/40 shadow-xl;
   }
+
+  /* Estilos para el visor universal de Word (.docx) */
+  .docx-container .docx-documento {
+    background: white !important;
+    color: #1e293b !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    margin: 0 auto !important;
+    padding: 2.5rem !important;
+    border-radius: 0.5rem !important;
+    min-height: 100% !important;
+  }
+  .docx-container table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 1rem 0 !important;
+  }
+  .docx-container table td,
+  .docx-container table th {
+    border: 1px solid #cbd5e1 !important;
+    padding: 0.4rem 0.6rem !important;
+  }
 }

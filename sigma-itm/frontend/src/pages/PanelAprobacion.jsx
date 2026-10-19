@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../api/client";
 import EstadoBadge from "../components/EstadoBadge";
+import FichaModalidadProyecto from "../components/FichaModalidadProyecto";
+import ModalVisorDocumento, { forzarDescargaArchivo } from "../components/ModalVisorDocumento";
 import { useAuth } from "../context/AuthContext";
 
 import { MODALIDADES_OFICIALES } from "../constants/modalidades";
@@ -150,6 +152,7 @@ export default function PanelAprobacion() {
   const [mensajeExito, setMensajeExito] = useState("");
   const [errorCarga, setErrorCarga] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [documentoAVisualizar, setDocumentoAVisualizar] = useState(null);
 
   // Estados inline por tarjeta para feedback inmediato al usuario
   const [erroresPorTarjeta, setErroresPorTarjeta] = useState({});
@@ -1209,6 +1212,9 @@ export default function PanelAprobacion() {
                 key={p.id}
                 className="glass-panel rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 border-t-4 border-transparent hover:border-itm-purple"
               >
+                {/* Ficha Institucional de la Modalidad, Título y Semáforo de Turno */}
+                <FichaModalidadProyecto postulacion={p} />
+
                 {/* Encabezado de la Tarjeta del Proyecto con datos institucionales completos del estudiante */}
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                   <div className="space-y-2 flex-1">
@@ -1517,14 +1523,23 @@ export default function PanelAprobacion() {
                     {p.documentos.map((doc) => (
                       <li
                         key={doc.id}
-                        className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 hover:bg-slate-100 transition-colors"
+                        className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 hover:bg-slate-100 hover:border-slate-300 transition-colors"
                       >
                         <div className="min-w-0 pr-2">
                           <p
-                            className="text-xs font-bold text-slate-800 truncate"
-                            title={doc.nombre}
+                            className="text-xs font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate flex items-center gap-1"
+                            title={`Haz clic para previsualizar: ${doc.nombre}`}
+                            onClick={() =>
+                              setDocumentoAVisualizar({
+                                nombre: doc.nombre,
+                                archivo: doc.archivo,
+                                descripcion: doc.descripcion,
+                                fecha: formatearFecha(doc.subido_en),
+                              })
+                            }
                           >
-                            📄 {doc.nombre}
+                            <span>📄</span>
+                            <span className="truncate">{doc.nombre}</span>
                           </p>
                           {doc.descripcion && (
                             <p className="text-[11px] text-slate-600 truncate italic">
@@ -1535,15 +1550,41 @@ export default function PanelAprobacion() {
                             {formatearFecha(doc.subido_en)}
                           </p>
                         </div>
-                        <a
-                          href={obtenerUrlDocumento(doc.archivo)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Descargar o ver documento ${doc.nombre}`}
-                          className="shrink-0 text-xs font-bold text-itm-blue hover:text-itm-purple hover:underline bg-white px-2.5 py-1.5 rounded border border-slate-200 shadow-2xs"
-                        >
-                          Ver / Descargar ↗
-                        </a>
+                        <div className="flex items-center gap-1.5 shrink-0 self-center">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocumentoAVisualizar({
+                                nombre: doc.nombre,
+                                archivo: doc.archivo,
+                                descripcion: doc.descripcion,
+                                fecha: formatearFecha(doc.subido_en),
+                              })
+                            }
+                            aria-label={`Previsualizar documento ${doc.nombre}`}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-2xs cursor-pointer"
+                            title="Previsualizar documento en pantalla sin descargar"
+                          >
+                            <span>👁️</span>
+                            <span>Ver</span>
+                          </button>
+                          <a
+                            href={obtenerUrlDocumento(doc.archivo)}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Descargar o ver documento ${doc.nombre}`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              forzarDescargaArchivo(obtenerUrlDocumento(doc.archivo), doc.nombre);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-2xs cursor-pointer"
+                            title="Descargar archivo a tu dispositivo"
+                          >
+                            <span>⬇️</span>
+                            <span>Descargar</span>
+                          </a>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -1579,14 +1620,37 @@ export default function PanelAprobacion() {
                         <span className="text-purple-900 font-medium flex items-center gap-1.5">
                           <span>📎</span> Archivo adjunto de la citación
                         </span>
-                        <a
-                          href={obtenerUrlDocumento(p.archivo_sustentacion)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[11px] font-bold text-itm-blue hover:text-itm-purple hover:underline bg-white px-3 py-1.5 rounded-md border border-purple-200 shadow-2xs text-center"
-                        >
-                          Ver Documento ↗
-                        </a>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDocumentoAVisualizar({
+                                nombre: "Archivo de Citación a Sustentación",
+                                archivo: p.archivo_sustentacion,
+                                descripcion: p.mensaje_sustentacion,
+                                fecha: formatearFecha(p.creada_en),
+                              })
+                            }
+                            className="text-[11px] font-bold text-itm-purple bg-white hover:bg-itm-purple hover:text-white border border-purple-200 px-2.5 py-1.5 rounded-md transition-colors"
+                            title="Previsualizar citación"
+                          >
+                            👁️ Ver
+                          </button>
+                          <a
+                            href={obtenerUrlDocumento(p.archivo_sustentacion)}
+                            download
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              forzarDescargaArchivo(obtenerUrlDocumento(p.archivo_sustentacion), `Citacion_Sustentacion_${p.id}`);
+                            }}
+                            className="text-[11px] font-bold text-slate-700 hover:text-itm-blue bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                            title="Descargar citación"
+                          >
+                            ⬇️ Descargar
+                          </a>
+                        </div>
                       </div>
                     )}
                     
@@ -1682,14 +1746,39 @@ export default function PanelAprobacion() {
                           <span className="text-amber-900 font-medium flex items-center gap-1.5">
                             <span>📎</span> Documento con comentarios adjuntado
                           </span>
-                          <a
-                            href={obtenerUrlDocumento(p.archivo_correccion)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs font-bold text-itm-blue hover:text-itm-purple hover:underline flex items-center gap-1"
-                          >
-                            <span>Ver / Descargar archivo ↗</span>
-                          </a>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDocumentoAVisualizar({
+                                  nombre: "Documento con Observaciones y Correcciones",
+                                  archivo: p.archivo_correccion,
+                                  descripcion: p.observaciones_correccion,
+                                  fecha: formatearFecha(p.creada_en),
+                                })
+                              }
+                              className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple bg-purple-50 hover:bg-itm-purple hover:text-white px-2.5 py-1.5 rounded-lg border border-purple-200 transition-colors shadow-2xs cursor-pointer"
+                              title="Previsualizar observaciones"
+                            >
+                              <span>👁️</span>
+                              <span>Ver</span>
+                            </button>
+                            <a
+                              href={obtenerUrlDocumento(p.archivo_correccion)}
+                              download
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                forzarDescargaArchivo(obtenerUrlDocumento(p.archivo_correccion), `Observaciones_${p.id}`);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-amber-900 bg-white hover:bg-amber-100 px-2.5 py-1.5 rounded-lg border border-amber-300 transition-colors shadow-2xs cursor-pointer"
+                              title="Descargar documento con correcciones"
+                            >
+                              <span>⬇️</span>
+                              <span>Descargar</span>
+                            </a>
+                          </div>
                         </div>
                       )}
 
@@ -2068,41 +2157,134 @@ export default function PanelAprobacion() {
           {/* Ficha Descriptiva de la Modalidad Seleccionada */}
           {modalidadSeleccionadaInfo && (
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="text-3xl p-2 bg-white rounded-xl shadow-xs border border-blue-100">
-                    {modalidadSeleccionadaInfo.icono}
-                  </span>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="text-base font-black text-slate-900">
-                        {modalidadSeleccionadaInfo.nombre}
-                      </h4>
-                      <span
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                          proyectosFiltradosHistorial.length > 0
-                            ? "bg-emerald-100 text-emerald-800"
-                            : "bg-slate-200 text-slate-700"
-                        }`}
-                      >
-                        {proyectosFiltradosHistorial.length}{" "}
-                        {proyectosFiltradosHistorial.length === 1
-                          ? "proyecto registrado"
-                          : "proyectos registrados"}
-                      </span>
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl p-2 bg-white rounded-xl shadow-xs border border-blue-100">
+                      {modalidadSeleccionadaInfo.icono}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-base font-black text-slate-900">
+                          {modalidadSeleccionadaInfo.nombre}
+                        </h4>
+                        {modalidadSeleccionadaInfo.codigo && (
+                          <span className="text-[10px] font-mono font-bold bg-blue-100 text-itm-blue px-2 py-0.5 rounded-md">
+                            {modalidadSeleccionadaInfo.codigo}
+                          </span>
+                        )}
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                            proyectosFiltradosHistorial.length > 0
+                              ? "bg-emerald-100 text-emerald-800"
+                              : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
+                          {proyectosFiltradosHistorial.length}{" "}
+                          {proyectosFiltradosHistorial.length === 1
+                            ? "proyecto registrado"
+                            : "proyectos registrados"}
+                        </span>
+                      </div>
+                      {modalidadSeleccionadaInfo.subtitulo && (
+                        <p className="text-xs font-semibold text-itm-purple">
+                          {modalidadSeleccionadaInfo.subtitulo}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-600 mt-1 leading-relaxed max-w-3xl">
-                      {modalidadSeleccionadaInfo.descripcion}
-                    </p>
                   </div>
+
+                  <button
+                    onClick={() => setFiltroModalidadHistorial("")}
+                    className="text-xs font-bold text-slate-500 hover:text-slate-800 self-start sm:self-center bg-white px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+                  >
+                    Ver todas
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => setFiltroModalidadHistorial("")}
-                  className="text-xs font-bold text-slate-500 hover:text-slate-800 self-start sm:self-center bg-white px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                >
-                  Ver todas
-                </button>
+                <p className="text-xs text-slate-700 leading-relaxed font-normal">
+                  {modalidadSeleccionadaInfo.queEs || modalidadSeleccionadaInfo.descripcion}
+                </p>
+
+                {/* Ruta Paso a Paso reglamentaria */}
+                {modalidadSeleccionadaInfo.pasosProceso && (
+                  <div className="bg-white/90 p-3 rounded-xl border border-blue-100/90 space-y-1.5 shadow-2xs">
+                    <span className="font-bold text-itm-blue block text-[11px] uppercase tracking-wide">
+                      🧭 Ruta paso a paso de la modalidad (Flujo Oficial ITM):
+                    </span>
+                    <div className="space-y-1 text-xs text-slate-600">
+                      {modalidadSeleccionadaInfo.pasosProceso.map((paso, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <span className="bg-itm-blue text-white font-bold text-[9px] w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                            {idx + 1}
+                          </span>
+                          <span className="leading-snug">{paso.replace(/^\d+\.\s*/, '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Requisitos para Obtener el Grado */}
+                {modalidadSeleccionadaInfo.requisitosParaGraduarse && (
+                  <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-1">
+                    <span className="font-bold text-emerald-900 block uppercase tracking-wide text-[11px]">
+                      ✅ Requisitos indispensables que debe verificar el Comité/Asesor para grado:
+                    </span>
+                    <ul className="space-y-1">
+                      {modalidadSeleccionadaInfo.requisitosParaGraduarse.map((req, idx) => (
+                        <li key={idx} className="flex items-start gap-1.5">
+                          <span className="text-emerald-600 font-bold">✔</span>
+                          <span className="leading-snug font-medium">{req}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Grilla institucional con requisitos y documentos para el evaluador */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1 text-xs">
+                  {modalidadSeleccionadaInfo.condicionesPrevias && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80">
+                      <span className="font-bold text-amber-700 block mb-0.5">📊 Condiciones Previas y Créditos:</span>
+                      <span className="text-slate-600">{modalidadSeleccionadaInfo.condicionesPrevias}</span>
+                    </div>
+                  )}
+                  {modalidadSeleccionadaInfo.responsableAprobacion && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80">
+                      <span className="font-bold text-slate-800 block mb-0.5">⚖️ Responsable de Aprobación:</span>
+                      <span className="text-slate-600">{modalidadSeleccionadaInfo.responsableAprobacion}</span>
+                    </div>
+                  )}
+                  {modalidadSeleccionadaInfo.documentosRequeridos && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80 md:col-span-2">
+                      <span className="font-bold text-itm-purple block mb-1">📑 Documentos Obligatorios a Verificar:</span>
+                      <ul className="list-disc list-inside space-y-0.5 text-slate-700">
+                        {modalidadSeleccionadaInfo.documentosRequeridos.map((doc, idx) => (
+                          <li key={idx}><span className="font-medium">{doc}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {modalidadSeleccionadaInfo.entregablesFinales && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80">
+                      <span className="font-bold text-slate-800 block mb-0.5">📦 Entregable Final Exigido:</span>
+                      <span className="text-slate-600 font-medium">{modalidadSeleccionadaInfo.entregablesFinales}</span>
+                    </div>
+                  )}
+                  {modalidadSeleccionadaInfo.criteriosEvaluacion && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80">
+                      <span className="font-bold text-slate-800 block mb-0.5">🎯 Criterio de Aprobación / Calificación:</span>
+                      <span className="text-slate-600">{modalidadSeleccionadaInfo.criteriosEvaluacion}</span>
+                    </div>
+                  )}
+                  {modalidadSeleccionadaInfo.requiereSustentacion && (
+                    <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80 md:col-span-2 text-slate-700">
+                      <span className="font-bold text-slate-800">🎤 Modalidad de Cierre: </span>
+                      <span>{modalidadSeleccionadaInfo.requiereSustentacion}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -2379,7 +2561,7 @@ export default function PanelAprobacion() {
           aria-labelledby="modal-correccion-titulo"
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6"
         >
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full border border-slate-200 flex flex-col max-h-[92vh] overflow-hidden animate-in fade-in zoom-in duration-200">
             {/* Cabecera del Modal */}
             <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 text-white p-5 sm:p-6 flex items-start justify-between gap-4">
               <div>
@@ -2447,7 +2629,7 @@ export default function PanelAprobacion() {
                 </div>
                 <textarea
                   id="modal-obs-texto"
-                  rows={5}
+                  rows={8}
                   value={modalCorreccion.observacion}
                   onChange={(e) =>
                     setModalCorreccion((prev) => ({
@@ -2457,7 +2639,7 @@ export default function PanelAprobacion() {
                     }))
                   }
                   placeholder="Escribe de manera clara y explícita qué aspectos debe corregir el estudiante, qué documentos debe corregir o qué cambios de fondo se requieren en su propuesta..."
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 min-h-[200px] leading-relaxed resize-y shadow-inner"
                 />
               </div>
 
@@ -2680,7 +2862,7 @@ export default function PanelAprobacion() {
                 </label>
                 <textarea
                   id="modal-asesor-mensaje"
-                  rows={4}
+                  rows={6}
                   value={modalEnviarAsesor.mensaje}
                   onChange={(e) =>
                     setModalEnviarAsesor((prev) => ({
@@ -2690,7 +2872,7 @@ export default function PanelAprobacion() {
                     }))
                   }
                   placeholder="Escribe instrucciones, directrices o contexto que el asesor debe conocer sobre este proyecto..."
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 min-h-[150px] leading-relaxed resize-y shadow-inner"
                 />
               </div>
 
@@ -2867,7 +3049,7 @@ export default function PanelAprobacion() {
                 </div>
                 <textarea
                   id="modal-sust-mensaje"
-                  rows={5}
+                  rows={7}
                   value={modalSustentacion.mensaje}
                   onChange={(e) =>
                     setModalSustentacion((prev) => ({
@@ -2877,7 +3059,7 @@ export default function PanelAprobacion() {
                     }))
                   }
                   placeholder="Escribe la fecha, hora y lugar de sustentación, y cualquier indicación adicional que el estudiante deba conocer para prepararse..."
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3.5 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-itm-purple transition-all placeholder:text-slate-400 min-h-[160px] leading-relaxed resize-y shadow-inner"
                 />
               </div>
 
@@ -3057,13 +3239,13 @@ export default function PanelAprobacion() {
                 </label>
                 <textarea
                   id="modal-comite-mensaje"
-                  rows={3}
+                  rows={5}
                   placeholder="Ej: La sustentación se realizó satisfactoriamente el día... El estudiante demostró dominio del tema..."
                   value={modalEnviarComite.mensaje}
                   onChange={(e) =>
                     setModalEnviarComite((prev) => ({ ...prev, mensaje: e.target.value, error: "" }))
                   }
-                  className="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-itm-purple resize-none"
+                  className="w-full border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-itm-purple min-h-[130px] leading-relaxed resize-y shadow-inner"
                 />
               </div>
 
@@ -3199,8 +3381,8 @@ export default function PanelAprobacion() {
                   Motivos del Rechazo (Opcional pero recomendado)
                 </label>
                 <textarea
-                  rows={4}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-all placeholder:text-slate-400"
+                  rows={6}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-400 transition-all placeholder:text-slate-400 min-h-[150px] leading-relaxed resize-y shadow-inner"
                   placeholder="Ej: El proyecto no alcanzó a completarse en los tiempos estipulados por el calendario académico..."
                   value={modalRechazo.mensaje}
                   onChange={(e) =>
@@ -3310,13 +3492,13 @@ export default function PanelAprobacion() {
                 </label>
                 <textarea
                   required
-                  rows={4}
+                  rows={5}
                   value={modalRechazoUsuario.motivo}
                   onChange={(e) =>
                     setModalRechazoUsuario((prev) => ({ ...prev, motivo: e.target.value }))
                   }
                   placeholder="Explica la razón (ej. No se encuentra matriculado en la facultad, no adjuntó soporte, rol incorrecto...)"
-                  className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                  className="w-full text-xs sm:text-sm p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none min-h-[130px] leading-relaxed resize-y shadow-inner"
                 />
               </div>
 
@@ -3519,6 +3701,11 @@ export default function PanelAprobacion() {
           </div>
         );
       })()}
+      {/* Modal de Previsualización y Descarga de Documentos */}
+      <ModalVisorDocumento
+        documento={documentoAVisualizar}
+        onCerrar={() => setDocumentoAVisualizar(null)}
+      />
     </div>
   );
 }
