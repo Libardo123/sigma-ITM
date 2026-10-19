@@ -1947,14 +1947,14 @@ export default function PanelEstudiante() {
                             </span>
                           </div>
 
-                          {/* Descripción editable */}
+                          {/* Descripción / Justificación editable de la versión vigente */}
                           {docEnEdicionId === doc.id ? (
                             <div className="mt-2 flex items-center gap-2">
                               <input
                                 type="text"
                                 value={descripcionEnEdicion}
                                 onChange={(e) => setDescripcionEnEdicion(e.target.value)}
-                                placeholder="Escribe la descripción o notas del documento..."
+                                placeholder="Escribe el motivo o justificación de esta versión..."
                                 className="flex-1 bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800"
                               />
                               <button
@@ -1977,24 +1977,31 @@ export default function PanelEstudiante() {
                               </button>
                             </div>
                           ) : (
-                            <div className="mt-1 flex items-center gap-2 text-xs">
-                              {doc.descripcion ? (
-                                <span className="text-slate-600 italic">
-                                  "{doc.descripcion}"
+                            <div className="mt-1.5 space-y-1 text-xs">
+                              <div className="flex items-start gap-1.5 flex-wrap">
+                                <span className="text-slate-500 font-bold shrink-0">
+                                  {tieneHistorial ? `Motivo / Justificación (v${maxVer}):` : "Descripción:"}
                                 </span>
-                              ) : (
-                                <span className="text-slate-400 italic">Sin descripción</span>
+                                <span className="text-slate-800 italic font-medium">
+                                  "{motivoVigente || doc.descripcion || "Sin justificación registrada"}"
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDocEnEdicionId(doc.id);
+                                    setDescripcionEnEdicion(motivoVigente || doc.descripcion || "");
+                                  }}
+                                  className="text-[11px] text-itm-blue hover:text-itm-purple font-semibold hover:underline shrink-0 ml-1"
+                                  title="Editar motivo de la versión vigente"
+                                >
+                                  ✏️ Editar
+                                </button>
+                              </div>
+                              {versionVigenteObj?.descripcion && versionVigenteObj.descripcion !== motivoVigente && (
+                                <div className="text-[11px] text-slate-500">
+                                  <span className="font-bold">Notas complementarias (v{maxVer}):</span> {versionVigenteObj.descripcion}
+                                </div>
                               )}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setDocEnEdicionId(doc.id);
-                                  setDescripcionEnEdicion(doc.descripcion || "");
-                                }}
-                                className="text-[11px] text-itm-blue hover:text-itm-purple font-semibold hover:underline"
-                              >
-                                ✏️ Editar descripción
-                              </button>
                             </div>
                           )}
 
