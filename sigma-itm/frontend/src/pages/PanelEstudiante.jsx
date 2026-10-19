@@ -454,6 +454,14 @@ export default function PanelEstudiante() {
     mensaje: "",
   });
 
+  const [modalNotificarDocumento, setModalNotificarDocumento] = useState({
+    abierto: false,
+    tipo: "NUEVO",
+    documentoNombre: "",
+    numeroVersion: 1,
+    motivo: "",
+  });
+
   const handleEnviarSubsanacionModal = async (e) => {
     e.preventDefault();
     if (!proceso) return;
@@ -592,6 +600,9 @@ export default function PanelEstudiante() {
     formData.append("archivo", modalRadicarDoc.archivo);
 
     try {
+      const nombreSubido = modalRadicarDoc.nombre.trim();
+      const descSubida = modalRadicarDoc.descripcion.trim();
+
       await api.post("/documentos/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -606,6 +617,14 @@ export default function PanelEstudiante() {
       });
       await cargar();
       await cargarValidacion(proceso.id);
+
+      setModalNotificarDocumento({
+        abierto: true,
+        tipo: "NUEVO",
+        documentoNombre: nombreSubido,
+        numeroVersion: 1,
+        motivo: descSubida,
+      });
     } catch (err) {
       const detalle =
         err.response?.data?.archivo?.[0] ||
@@ -630,6 +649,14 @@ export default function PanelEstudiante() {
     }
 
     setModalReemplazarDoc((prev) => ({ ...prev, enviando: true, error: "" }));
+
+    const esTarget = Boolean(modalReemplazarDoc.versionTarget);
+    const numVer = esTarget
+      ? modalReemplazarDoc.versionTarget.numero_version
+      : (modalReemplazarDoc.versionActual || 1) + 1;
+    const docNom = modalReemplazarDoc.docNombre || "Documento";
+    const motivoTexto = modalReemplazarDoc.motivo?.trim() || "";
+    const tipoAccion = esTarget ? "REEMPLAZO" : "VERSION";
 
     const formData = new FormData();
     formData.append("archivo", modalReemplazarDoc.archivo);
@@ -680,6 +707,14 @@ export default function PanelEstudiante() {
       if (proceso?.id) {
         await cargarValidacion(proceso.id);
       }
+
+      setModalNotificarDocumento({
+        abierto: true,
+        tipo: tipoAccion,
+        documentoNombre: docNom,
+        numeroVersion: numVer,
+        motivo: motivoTexto,
+      });
     } catch (err) {
       const detalle =
         err.response?.data?.archivo?.[0] ||
@@ -2767,6 +2802,126 @@ export default function PanelEstudiante() {
           </div>
         </div>
       )}
+      {/* MODAL DE NOTIFICACIÓN POR CORREO AL ASESOR/EVALUADOR CUANDO EL ESTUDIANTE SUBE O MODIFICA UN ARCHIVO */}
+      {modalNotificarDocumento.abierto && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="bg-gradient-to-r from-itm-blue to-itm-purple text-white p-6 text-center">
+              <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border border-white/30">
+                {modalNotificarDocumento.tipo === "NUEVO" ? "📄" : "🔄"}
+              </div>
+              <h3 className="text-xl font-black">
+                {modalNotificarDocumento.tipo === "NUEVO"
+                  ? "¡Documento Radicado con Éxito!"
+                  : modalNotificarDocumento.tipo === "REEMPLAZO"
+                  ? `¡Archivo de Versión v${modalNotificarDocumento.numeroVersion} Sustituido!`
+                  : `¡Nueva Versión v${modalNotificarDocumento.numeroVersion} Cargada!`}
+              </h3>
+              <p className="text-xs text-indigo-100 mt-1">
+                El archivo ha sido guardado exitosamente y ya está disponible en tiempo real en la plataforma para tu docente asesor y evaluadores.
+              </p>
+            </div>
+
+            {(() => {
+              const emailDestino = proceso?.asesor_email || "admin@itm.edu.co";
+              const nombreAsesor = proceso?.asesor_nombre || "Docente Asesor / Evaluador";
+              const proyecto = proceso?.titulo_proyecto || proceso?.modalidad_nombre || "Trabajo de Grado";
+              const docNom = modalNotificarDocumento.documentoNombre || "Documento";
+              const ver = modalNotificarDocumento.numeroVersion || 1;
+              const motivo = modalNotificarDocumento.motivo || "";
+
+              let asuntoTexto = "";
+              let cuerpoTexto = "";
+
+              if (modalNotificarDocumento.tipo === "NUEVO") {
+                asuntoTexto = `SIGMA ITM — Nuevo Documento Radicado: "${docNom}"`;
+                cuerpoTexto = `Estimado(a) ${nombreAsesor}:\n\nLe informo que he radicado un nuevo documento en la plataforma SIGMA ITM para mi trabajo de grado.\n\nProyecto:\n"${proyecto}"\n\nDocumento radicado:\n"${docNom}"\n${motivo ? `\nDescripción / Notas:\n"${motivo}"\n` : ""}\nEl archivo ya se encuentra disponible en mi expediente digital para su revisión.\n\nAtentamente,\n${usuario?.first_name || ""} ${usuario?.last_name || ""}\nCédula: ${usuario?.cedula || ""}\nPrograma: ${usuario?.programa_academico || ""}\nITM Institución Universitaria`;
+              } else if (modalNotificarDocumento.tipo === "REEMPLAZO") {
+                asuntoTexto = `SIGMA ITM — Corrección de Archivo v${ver}: "${docNom}"`;
+                cuerpoTexto = `Estimado(a) ${nombreAsesor}:\n\nLe informo que he sustituido y corregido el archivo correspondiente a la versión v${ver} de mi documento en la plataforma SIGMA ITM.\n\nProyecto:\n"${proyecto}"\n\nDocumento:\n"${docNom}" (Versión v${ver})\n${motivo ? `\nMotivo del ajuste:\n"${motivo}"\n` : ""}\nEl archivo corregido ha sido actualizado en el expediente para su verificación.\n\nAtentamente,\n${usuario?.first_name || ""} ${usuario?.last_name || ""}\nCédula: ${usuario?.cedula || ""}\nPrograma: ${usuario?.programa_academico || ""}\nITM Institución Universitaria`;
+              } else {
+                asuntoTexto = `SIGMA ITM — Nueva Versión v${ver} Cargada: "${docNom}"`;
+                cuerpoTexto = `Estimado(a) ${nombreAsesor}:\n\nLe informo que he cargado una nueva versión (v${ver}) de mi documento en la plataforma SIGMA ITM.\n\nProyecto:\n"${proyecto}"\n\nDocumento:\n"${docNom}"\nVersión radicada: v${ver} (Vigente)\n${motivo ? `\nMotivo / Justificación:\n"${motivo}"\n` : ""}\nLa nueva versión y el historial de trazabilidad ya están disponibles en el sistema para su cotejo y retroalimentación.\n\nAtentamente,\n${usuario?.first_name || ""} ${usuario?.last_name || ""}\nCédula: ${usuario?.cedula || ""}\nPrograma: ${usuario?.programa_academico || ""}\nITM Institución Universitaria`;
+              }
+
+              const asunto = encodeURIComponent(asuntoTexto);
+              const cuerpo = encodeURIComponent(cuerpoTexto);
+              const mailtoUrl = `mailto:${emailDestino}?subject=${asunto}&body=${cuerpo}`;
+              const outlookUrl = `https://outlook.office.com/mail/deeplink/compose?to=${encodeURIComponent(emailDestino)}&subject=${asunto}&body=${cuerpo}`;
+              const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(emailDestino)}&su=${asunto}&body=${cuerpo}`;
+
+              return (
+                <div className="p-6 space-y-4">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-700 space-y-1">
+                    <p><strong>Destinatario de aviso:</strong> {nombreAsesor} ({emailDestino})</p>
+                    <p><strong>Documento:</strong> {docNom} {modalNotificarDocumento.tipo !== "NUEVO" ? `(v${ver})` : ""}</p>
+                    {motivo && (
+                      <p className="line-clamp-2 text-slate-600 italic">
+                        <strong>Motivo/Nota:</strong> "{motivo}"
+                      </p>
+                    )}
+                    <p className="text-[11px] text-slate-500 mt-2">
+                      Notifícale a tu asesor inmediatamente abriendo tu correo institucional con 1 solo clic:
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <a
+                      href={mailtoUrl}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-itm-blue hover:bg-itm-blue-dark text-white font-black text-xs rounded-xl shadow-sm transition-all"
+                    >
+                      <span>✉️</span>
+                      <span>Notificar por Correo Predeterminado (Mailto)</span>
+                    </a>
+                    <div className="grid grid-cols-2 gap-2">
+                      <a
+                        href={outlookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                      >
+                        <span>📧</span>
+                        <span>Outlook 365 ITM</span>
+                      </a>
+                      <a
+                        href={gmailUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all"
+                      >
+                        <span>📮</span>
+                        <span>Gmail Web</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 text-right">
+                    <button
+                      onClick={() =>
+                        setModalNotificarDocumento({
+                          abierto: false,
+                          tipo: "NUEVO",
+                          documentoNombre: "",
+                          numeroVersion: 1,
+                          motivo: "",
+                        })
+                      }
+                      className="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                    >
+                      Cerrar y Ver Mi Panel
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
       {/* MODAL INSTITUCIONAL PARA RADICAR / ANEXAR NUEVO DOCUMENTO */}
       {modalRadicarDoc.abierto && (
         <div
