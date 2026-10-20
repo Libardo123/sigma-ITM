@@ -141,6 +141,7 @@ class DocumentoAdmin(admin.ModelAdmin):
         "get_estudiante",
         "get_cedula",
         "get_modalidad",
+        "get_tamano",
         "subido_en",
         "descargar_archivo",
     )
@@ -152,7 +153,7 @@ class DocumentoAdmin(admin.ModelAdmin):
         "postulacion__estudiante__first_name",
         "postulacion__estudiante__last_name",
     )
-    readonly_fields = ("subido_en", "descargar_archivo")
+    readonly_fields = ("subido_en", "descargar_archivo", "get_tamano")
     inlines = [VersionDocumentoInline]
 
     @admin.display(description="Estudiante", ordering="postulacion__estudiante")
@@ -166,6 +167,18 @@ class DocumentoAdmin(admin.ModelAdmin):
     @admin.display(description="Modalidad", ordering="postulacion__modalidad")
     def get_modalidad(self, obj):
         return obj.postulacion.modalidad.nombre
+
+    @admin.display(description="Tamaño")
+    def get_tamano(self, obj):
+        try:
+            if obj.archivo and obj.archivo.size:
+                kb = obj.archivo.size / 1024
+                if kb < 1024:
+                    return f"{kb:.1f} KB"
+                return f"{kb / 1024:.2f} MB"
+        except Exception:
+            pass
+        return "-"
 
     @admin.display(description="Acción / Descarga")
     def descargar_archivo(self, obj):
