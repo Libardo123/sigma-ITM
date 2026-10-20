@@ -71,6 +71,18 @@ function formatearFecha(fechaIso) {
 }
 
 /**
+ * Normaliza un texto para búsquedas flexibles: elimina tildes/acentos (NFD),
+ * convierte a minúsculas y remueve espacios extra.
+ */
+function normalizarTextoBusqueda(texto) {
+  return String(texto || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
  * Evalúa si el usuario autenticado tiene potestad para gestionar la etapa actual.
  */
 function puedeGestionarEtapa(postulacion, usuario) {
@@ -984,7 +996,7 @@ export default function PanelAprobacion() {
   ).length;
   const sinAsesor = procesos.filter((p) => !p.asesor).length;
 
-  // Filtrado de proyectos para la pestaña de Historial
+  // Filtrado de proyectos para la pestaña de Historial (insensible a mayúsculas, minúsculas y tildes)
   const proyectosFiltradosHistorial = procesos.filter((p) => {
     if (filtroModalidadHistorial && p.modalidad_nombre !== filtroModalidadHistorial) {
       return false;
@@ -992,22 +1004,12 @@ export default function PanelAprobacion() {
     if (!busquedaHistorial || !busquedaHistorial.trim()) {
       return true;
     }
-    const bHist = String(busquedaHistorial).trim().toLowerCase();
-    const cedula = String(p.estudiante_cedula || "").toLowerCase();
-    const nombre = String(p.estudiante_nombre || "").toLowerCase();
-    const email = String(p.estudiante_email || "").toLowerCase();
-    const titulo = String(p.titulo_proyecto || "").toLowerCase();
-    const modalidad = String(p.modalidad_nombre || "").toLowerCase();
-    const asesor = String(p.asesor_nombre || "").toLowerCase();
-
-    return (
-      cedula.includes(bHist) ||
-      nombre.includes(bHist) ||
-      email.includes(bHist) ||
-      titulo.includes(bHist) ||
-      modalidad.includes(bHist) ||
-      asesor.includes(bHist)
+    const palabras = normalizarTextoBusqueda(busquedaHistorial).split(/\s+/).filter(Boolean);
+    const textoObjetivo = normalizarTextoBusqueda(
+      `${p.estudiante_cedula} ${p.estudiante_nombre} ${p.estudiante_email} ${p.titulo_proyecto} ${p.modalidad_nombre} ${p.asesor_nombre}`
     );
+
+    return palabras.every((palabra) => textoObjetivo.includes(palabra));
   });
 
   // Modalidad actualmente seleccionada para ver su ficha
@@ -1308,22 +1310,13 @@ export default function PanelAprobacion() {
               if (filtroEstado && p.estado !== filtroEstado) return false;
 
               if (busquedaGeneral && busquedaGeneral.trim()) {
-                const term = String(busquedaGeneral).trim().toLowerCase();
-                const cedula = String(p.estudiante_cedula || "").toLowerCase();
-                const nombre = String(p.estudiante_nombre || "").toLowerCase();
-                const email = String(p.estudiante_email || "").toLowerCase();
-                const titulo = String(p.titulo_proyecto || "").toLowerCase();
-                const modalidad = String(p.modalidad_nombre || "").toLowerCase();
-                const asesor = String(p.asesor_nombre || "").toLowerCase();
+                const palabras = normalizarTextoBusqueda(busquedaGeneral).split(/\s+/).filter(Boolean);
+                const textoObjetivo = normalizarTextoBusqueda(
+                  `${p.estudiante_cedula} ${p.estudiante_nombre} ${p.estudiante_email} ${p.titulo_proyecto} ${p.modalidad_nombre} ${p.asesor_nombre}`
+                );
 
-                const coincide =
-                  cedula.includes(term) ||
-                  nombre.includes(term) ||
-                  email.includes(term) ||
-                  titulo.includes(term) ||
-                  modalidad.includes(term) ||
-                  asesor.includes(term);
-
+                // Cada palabra ingresada (nombre, apellido, cédula o modalidad) debe coincidir
+                const coincide = palabras.every((palabra) => textoObjetivo.includes(palabra));
                 if (!coincide) return false;
               }
 
@@ -1379,9 +1372,9 @@ export default function PanelAprobacion() {
                         <span
                           className={`text-xs px-2.5 py-0.5 rounded font-mono font-bold border transition-all ${
                             busquedaGeneral &&
-                            String(p.estudiante_cedula)
-                              .toLowerCase()
-                              .includes(String(busquedaGeneral).trim().toLowerCase())
+                            normalizarTextoBusqueda(p.estudiante_cedula).includes(
+                              normalizarTextoBusqueda(busquedaGeneral)
+                            )
                               ? "bg-amber-100 text-amber-900 border-amber-300 ring-2 ring-amber-400/50"
                               : "bg-slate-100 text-slate-700 border-slate-200"
                           }`}
