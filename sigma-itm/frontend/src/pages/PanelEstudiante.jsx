@@ -1035,11 +1035,11 @@ export default function PanelEstudiante() {
 
         <form onSubmit={postular} noValidate className="space-y-6">
           {/* BLOQUE 1: DATOS INSTITUCIONALES DEL ESTUDIANTE */}
-          <div className="glass-panel border-t-4 border-itm-blue rounded-2xl p-6 sm:p-8 shadow-md">
+          <div className="glass-panel border-t-4 border-itm-blue rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
             <h3 className="text-base font-black text-itm-blue mb-4 flex items-center gap-2">
               <span>👤</span> 1. Información del Estudiante Postulante
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-xs">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <span className="text-slate-400 font-bold uppercase block text-[10px] mb-0.5">Nombre Completo</span>
                 <span className="font-bold text-slate-800 text-sm">
@@ -1098,7 +1098,7 @@ export default function PanelEstudiante() {
           </div>
 
           {/* BLOQUE 2: CATÁLOGO REGLAMENTARIO DE LAS 10 MODALIDADES */}
-          <div className="glass-panel border-t-4 border-itm-purple rounded-2xl p-6 sm:p-8 shadow-md">
+          <div className="glass-panel border-t-4 border-itm-purple rounded-2xl p-4 sm:p-6 lg:p-8 shadow-md">
             <h3 className="text-base font-black text-itm-blue mb-2 flex items-center gap-2">
               <span>🎓</span> 2. Selección de Modalidad de Grado (10 Opciones ITM)
             </h3>
@@ -1107,7 +1107,7 @@ export default function PanelEstudiante() {
             </p>
 
             {/* Cuadrícula interactiva de las 10 modalidades */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-5">
               {MODALIDADES_OFICIALES.map((m) => {
                 const encontradaEnBD = modalidades.find(
                   (mod) => mod.nombre.toLowerCase().trim() === m.nombre.toLowerCase().trim()

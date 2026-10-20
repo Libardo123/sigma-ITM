@@ -43,34 +43,34 @@ export default function Timeline({ estadoActual }) {
   ];
 
   return (
-    <div className="w-full py-2">
+    <div className="w-full py-1 sm:py-2 overflow-hidden">
       <div className="flex items-center justify-between relative">
         {etapas.map((etapa, idx) => {
           const completado = etapa.num < pasoActual || pasoActual === 5;
           const esActual = etapa.num === pasoActual && pasoActual !== 5;
           return (
-            <div key={etapa.num} className="flex-1 flex flex-col items-center relative z-10">
+            <div key={etapa.num} className="flex-1 flex flex-col items-center relative z-10 px-0.5">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-xs ${
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-black text-[10px] sm:text-xs transition-all shadow-xs shrink-0 ${
                   completado
-                    ? "bg-itm-purple text-white ring-4 ring-purple-100"
+                    ? "bg-itm-purple text-white ring-2 sm:ring-4 ring-purple-100"
                     : esActual
-                    ? "bg-itm-blue text-white ring-4 ring-blue-100 animate-pulse"
+                    ? "bg-itm-blue text-white ring-2 sm:ring-4 ring-blue-100 animate-pulse"
                     : "bg-slate-100 text-slate-400 border border-slate-300"
                 }`}
               >
                 {completado ? "✓" : etapa.num}
               </div>
               <span
-                className={`text-[11px] font-bold mt-2 text-center transition-colors ${
+                className={`text-[8px] sm:text-[11px] font-bold mt-1 sm:mt-2 text-center transition-colors leading-tight line-clamp-2 ${
                   completado || esActual ? "text-slate-900" : "text-slate-400"
                 }`}
               >
-                {etapa.num}. {etapa.label}
+                {etapa.label}
               </span>
               {idx < etapas.length - 1 && (
                 <div
-                  className={`hidden sm:block absolute top-4 left-1/2 w-full h-1 -z-10 transition-colors ${
+                  className={`block absolute top-3 sm:top-4 left-1/2 w-full h-0.5 sm:h-1 -z-10 transition-colors ${
                     etapa.num < pasoActual ? "bg-itm-purple" : "bg-slate-200"
                   }`}
                 />

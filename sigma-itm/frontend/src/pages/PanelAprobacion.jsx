@@ -1080,43 +1080,43 @@ export default function PanelAprobacion() {
       </div>
 
       {/* Pestañas de navegación: Procesos Activos vs Historial Completo */}
-      <div className="flex flex-col md:flex-row border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1.5">
         <button
           onClick={() => setPestanaActiva("gestion")}
-          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
             pestanaActiva === "gestion"
               ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
               : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
           }`}
         >
           <span>📋</span>
-          <span>
+          <span className="truncate">
             Gestión de Procesos ({procesos.filter((p) => !["FINALIZADO", "RECHAZADO", "REVISION_COMITE"].includes(p.estado)).length})
           </span>
         </button>
         <button
           onClick={() => setPestanaActiva("comite")}
-          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
             pestanaActiva === "comite"
               ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
               : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
           }`}
         >
           <span>🏛️</span>
-          <span>
+          <span className="truncate">
             Revisión Comité ({procesos.filter((p) => p.estado === "REVISION_COMITE" || p.estado === "FINALIZADO").length})
           </span>
         </button>
         <button
           onClick={() => setPestanaActiva("historial")}
-          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
             pestanaActiva === "historial"
               ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
               : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
           }`}
         >
           <span>📜</span>
-          <span>Historial y Trazabilidad de Proyectos</span>
+          <span className="truncate">Historial y Trazabilidad</span>
         </button>
         {(usuario?.rol === "ADMIN" || usuario?.rol === "ADMINISTRADOR") && (
           <button
@@ -1124,16 +1124,16 @@ export default function PanelAprobacion() {
               setPestanaActiva("usuarios");
               cargarSolicitudesUsuarios();
             }}
-            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
               pestanaActiva === "usuarios"
                 ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
                 : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
             }`}
           >
             <span>👥</span>
-            <span>Solicitudes de Usuarios</span>
+            <span className="truncate">Solicitudes de Usuarios</span>
             {solicitudesUsuarios.length > 0 && (
-              <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-bold ml-1 animate-pulse">
+              <span className="bg-amber-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-bold ml-1 animate-pulse">
                 {solicitudesUsuarios.length}
               </span>
             )}
@@ -1233,9 +1233,9 @@ export default function PanelAprobacion() {
       {/* PESTAÑA 1 y COMITÉ: GESTIÓN DE PROCESOS ACTIVOS Y EN REVISIÓN */}
       {!cargando && !errorCarga && (pestanaActiva === "gestion" || pestanaActiva === "comite") && (
         <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-            <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
                 {pestanaActiva === "comite" 
                   ? "Proyectos radicados al Comité para evaluación final"
                   : esAsesor
@@ -1243,15 +1243,15 @@ export default function PanelAprobacion() {
                   : "Trámites activos radicados en plataforma"}
               </p>
               {busquedaGeneral && (
-                <p className="text-[11px] font-semibold text-itm-purple mt-0.5">
+                <p className="text-[11px] font-semibold text-itm-purple mt-0.5 truncate">
                   Filtrando por búsqueda: "{busquedaGeneral}"
                 </p>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
               {/* Buscador Rápido por Cédula, Estudiante o Título */}
-              <div className="relative min-w-[240px] sm:min-w-[320px]">
+              <div className="relative w-full sm:flex-1 lg:w-80">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">
                   🔍
                 </span>
@@ -1275,7 +1275,7 @@ export default function PanelAprobacion() {
               </div>
 
               {/* Filtro por Estado */}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
                 <label
                   htmlFor="filtro-estado"
                   className="text-xs sm:text-sm font-bold text-itm-blue shrink-0"
@@ -1284,7 +1284,7 @@ export default function PanelAprobacion() {
                 </label>
                 <select
                   id="filtro-estado"
-                  className="border-2 border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all flex-1 sm:flex-initial"
                   value={filtroEstado}
                   onChange={(e) => setFiltroEstado(e.target.value)}
                   aria-label="Filtrar procesos por estado"

@@ -285,27 +285,27 @@ export default function ModalVisorDocumento({ documento, onCerrar }) {
       aria-label={`Previsualización de ${documento.nombre || "documento"}`}
     >
       <div 
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden border border-slate-200"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl h-[95vh] sm:h-[92vh] flex flex-col overflow-hidden border border-slate-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Barra Superior de Controles y Metadatos */}
-        <header className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
-            <span className="text-2xl shrink-0" aria-hidden="true">
+        <header className="px-3 sm:px-5 py-2.5 sm:py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-1">
+            <span className="text-xl sm:text-2xl shrink-0" aria-hidden="true">
               {esPdf ? "📄" : esImagen ? "🖼️" : esWord ? "📘" : esExcel ? "📊" : "📁"}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-bold text-slate-800 truncate" title={documento.nombre}>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h3 className="text-xs sm:text-base font-bold text-slate-800 truncate" title={documento.nombre}>
                   {documento.nombre || "Documento adjunto"}
                 </h3>
                 {extension && (
-                  <span className="shrink-0 text-[10px] font-black uppercase px-2 py-0.5 rounded bg-itm-purple/10 text-itm-purple border border-itm-purple/20">
+                  <span className="shrink-0 text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded bg-itm-purple/10 text-itm-purple border border-itm-purple/20">
                     {extension}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500 truncate" title={documento.descripcion || ""}>
+              <p className="text-[10px] sm:text-xs text-slate-500 truncate" title={documento.descripcion || ""}>
                 {documento.fecha ? `Subido el ${documento.fecha}` : "Expediente institucional SIGMA ITM"}
                 {documento.descripcion ? ` · ${documento.descripcion}` : ""}
               </p>
@@ -313,17 +313,17 @@ export default function ModalVisorDocumento({ documento, onCerrar }) {
           </div>
 
           {/* Acciones principales SIEMPRE alineadas a la derecha */}
-          <div className="flex items-center gap-2 shrink-0 ml-auto justify-end">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto justify-end">
             <button
               type="button"
               onClick={() => forzarDescargaArchivo(blobUrl || urlAbsoluta, documento.nombre)}
-              className="inline-flex items-center gap-1.5 bg-itm-purple hover:bg-[#500c66] text-white font-bold text-xs px-3.5 py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1 sm:gap-1.5 bg-itm-purple hover:bg-[#500c66] text-white font-bold text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-colors shadow-xs cursor-pointer"
               title="Descargar este archivo a tu dispositivo"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              <span>Descargar</span>
+              <span className="hidden sm:inline">Descargar</span>
             </button>
 
             <button
@@ -336,7 +336,7 @@ export default function ModalVisorDocumento({ documento, onCerrar }) {
                 if (documento.descripcion) params.set("descripcion", documento.descripcion);
                 window.open(`/visor?${params.toString()}`, "_blank", "noopener,noreferrer");
               }}
-              className="inline-flex items-center gap-1 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-3 py-2 rounded-lg border border-slate-300 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-slate-300 transition-colors cursor-pointer"
               title="Abrir este documento en una pestaña completa"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -348,7 +348,7 @@ export default function ModalVisorDocumento({ documento, onCerrar }) {
             <button
               type="button"
               onClick={onCerrar}
-              className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
+              className="p-1 sm:p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
               title="Cerrar visor (Esc)"
               aria-label="Cerrar visor"
             >
