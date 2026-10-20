@@ -8,11 +8,6 @@
     max-width: 100vw;
     overflow-x: hidden;
   }
-
-  /* Evitar que correos o hashes largos desborden horizontalmente el viewport */
-  p, span, h1, h2, h3, h4, h5, h6, a, div {
-    overflow-wrap: break-word;
-  }
 }
 
 @layer utilities {

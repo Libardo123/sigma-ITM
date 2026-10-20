@@ -299,29 +299,29 @@ export default function FichaModalidadProyecto({ postulacion, esEstudiante = fal
       )}
 
       {/* 3. Semáforo de Turno y Responsable Activo */}
-      <div className={`p-3.5 sm:p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs ${turno.claseCaja}`}>
-        <div className="flex items-start sm:items-center gap-3 min-w-0">
-          <span className="text-2xl shrink-0" aria-hidden="true">{turno.icono}</span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-2xs ${turno.claseBadge}`}>
+      <div className={`p-3.5 sm:p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs ${turno.claseCaja}`}>
+        <div className="flex items-start gap-3 flex-1 min-w-0 w-full">
+          <span className="text-2xl shrink-0 mt-0.5" aria-hidden="true">{turno.icono}</span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded shadow-2xs shrink-0 ${turno.claseBadge}`}>
                 Responsabilidad Activa
               </span>
-              <h4 className="text-xs sm:text-sm font-black tracking-tight truncate">
+              <h4 className="text-xs sm:text-sm font-black tracking-tight">
                 {turno.titulo}
               </h4>
             </div>
-            <p className="text-xs mt-0.5 font-medium opacity-90">
+            <p className="text-xs font-medium opacity-90 leading-relaxed break-normal">
               {turno.subtitulo}
             </p>
           </div>
         </div>
 
-        <div className="shrink-0 text-left sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-current/10">
+        <div className="w-full md:w-auto md:max-w-xs shrink-0 text-left md:text-right border-t md:border-t-0 pt-2.5 md:pt-0 border-current/15">
           <span className="text-[11px] font-bold block opacity-75 uppercase tracking-wide">
             Próxima Acción:
           </span>
-          <span className="text-xs font-semibold max-w-xs block sm:inline">
+          <span className="text-xs font-semibold block leading-snug break-normal">
             {turno.accion}
           </span>
         </div>
