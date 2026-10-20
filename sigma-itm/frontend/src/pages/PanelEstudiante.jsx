@@ -1039,26 +1039,26 @@ export default function PanelEstudiante() {
             <h3 className="text-base font-black text-itm-blue mb-4 flex items-center gap-2">
               <span>👤</span> 1. Información del Estudiante Postulante
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-xs">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 text-xs">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-0">
                 <span className="text-slate-400 font-bold uppercase block text-[10px] mb-0.5">Nombre Completo</span>
-                <span className="font-bold text-slate-800 text-sm">
+                <span className="font-bold text-slate-800 text-sm truncate block">
                   {usuario?.first_name} {usuario?.last_name || usuario?.username || "Jorge Bernal"}
                 </span>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-0">
                 <span className="text-slate-400 font-bold uppercase block text-[10px] mb-0.5">Cédula / Documento</span>
-                <span className="font-bold text-slate-800 text-sm">
+                <span className="font-bold text-slate-800 text-sm truncate block">
                   {usuario?.cedula || "1037654321"}
                 </span>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-0">
                 <span className="text-slate-400 font-bold uppercase block text-[10px] mb-0.5">Programa Académico</span>
-                <span className="font-bold text-slate-800 text-sm">
+                <span className="font-bold text-slate-800 text-sm truncate block">
                   {usuario?.programa_academico || "Tecnología en Desarrollo de Software"}
                 </span>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 min-w-0">
                 <span className="text-slate-400 font-bold uppercase block text-[10px] mb-0.5">Correo Electrónico</span>
                 <span className="font-bold text-slate-800 text-sm truncate block" title={usuario?.email}>
                   {usuario?.email || "jorge.bernal@correo.itm.edu.co"}

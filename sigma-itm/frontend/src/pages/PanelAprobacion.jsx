@@ -1362,8 +1362,8 @@ export default function PanelAprobacion() {
                 <FichaModalidadProyecto postulacion={p} />
 
                 {/* Encabezado de la Tarjeta del Proyecto con datos institucionales completos del estudiante */}
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                  <div className="space-y-2 flex-1">
+                <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-4 mb-4">
+                  <div className="space-y-2 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-xl font-black text-slate-900">
                         {p.estudiante_nombre}
@@ -1385,29 +1385,30 @@ export default function PanelAprobacion() {
                     </div>
 
                     {/* Ficha institucional completa del estudiante */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1.5 text-xs text-slate-600 bg-slate-50/90 p-3 rounded-xl border border-slate-200/80">
-                      <p className="flex items-center gap-1.5">
-                        <span>🎓</span>
-                        <span>
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-2.5 text-xs text-slate-600 bg-slate-50/90 p-3 rounded-xl border border-slate-200/80">
+                      <p className="flex items-center gap-1.5 min-w-0">
+                        <span className="shrink-0">🎓</span>
+                        <span className="truncate">
                           <strong className="text-slate-700">Programa:</strong>{" "}
                           {p.estudiante_programa || "Tecnología en Desarrollo de Software"}
                         </span>
                       </p>
-                      <p className="flex items-center gap-1.5">
-                        <span>📧</span>
-                        <span>
+                      <p className="flex items-center gap-1.5 min-w-0">
+                        <span className="shrink-0">📧</span>
+                        <span className="min-w-0 truncate">
                           <strong className="text-slate-700">Correo:</strong>{" "}
                           <a
                             href={`mailto:${p.estudiante_email}`}
                             className="text-itm-blue hover:underline"
+                            title={p.estudiante_email}
                           >
                             {p.estudiante_email || `${p.estudiante}@correo.itm.edu.co`}
                           </a>
                         </span>
                       </p>
-                      <p className="flex items-center gap-1.5">
-                        <span>📚</span>
-                        <span>
+                      <p className="flex items-center gap-1.5 min-w-0">
+                        <span className="shrink-0">📚</span>
+                        <span className="truncate">
                           <strong className="text-slate-700">Semestre:</strong>{" "}
                           {p.estudiante_semestre || "6° Semestre"}
                         </span>
@@ -1427,7 +1428,7 @@ export default function PanelAprobacion() {
                     </div>
 
                     {/* Asesor Asignado info */}
-                    <div className="text-xs flex items-center gap-2 text-slate-600 pt-1">
+                    <div className="text-xs flex items-center gap-2 text-slate-600 pt-1 flex-wrap">
                       <span className="font-bold text-slate-700">Docente Asesor:</span>
                       {p.asesor_nombre ? (
                         <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
@@ -1475,7 +1476,7 @@ export default function PanelAprobacion() {
                       )}
                   </div>
 
-                  <div className="shrink-0 flex flex-col items-end gap-2">
+                  <div className="shrink-0 flex items-center justify-between xl:justify-end xl:flex-col xl:items-end gap-2.5 pt-2 xl:pt-0 border-t border-slate-100 xl:border-t-0">
                     <EstadoBadge estado={p.estado} texto={p.estado_display} />
                     <button
                       onClick={() => toggleExpandirProyecto(p.id)}
