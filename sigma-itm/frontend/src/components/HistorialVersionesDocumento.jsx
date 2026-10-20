@@ -175,10 +175,10 @@ export default function HistorialVersionesDocumento({
                       : "bg-white/85 border-slate-200 text-slate-700 hover:border-slate-300"
                   }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 mb-2.5">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
                       <span
-                        className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                        className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider shrink-0 ${
                           esVigente
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                             : esOriginal
@@ -193,10 +193,10 @@ export default function HistorialVersionesDocumento({
                           ? "• Original Radicado"
                           : "• Corregido"}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] font-bold shrink-0">
                         {tipoArchivo}
                       </span>
-                      <span className="text-[11px] text-slate-500 font-medium">
+                      <span className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
                         🗓️{" "}
                         {formatearFecha
                           ? formatearFecha(v.creado_en)
@@ -205,7 +205,7 @@ export default function HistorialVersionesDocumento({
                     </div>
 
                     {/* Botonera Estandarizada Completa para CADA Versión */}
-                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap pt-1.5 xl:pt-0 border-t border-slate-100 xl:border-t-0">
                       {/* 1. Ver / Previsualizar */}
                       {onPrevisualizar && (
                         <button

@@ -299,8 +299,8 @@ export default function FichaModalidadProyecto({ postulacion, esEstudiante = fal
       )}
 
       {/* 3. Semáforo de Turno y Responsable Activo */}
-      <div className={`p-3.5 sm:p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-2xs ${turno.claseCaja}`}>
-        <div className="flex items-start gap-3 flex-1 min-w-0 w-full">
+      <div className={`p-4 rounded-xl border flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 shadow-2xs ${turno.claseCaja}`}>
+        <div className="flex items-start gap-3 min-w-0 w-full xl:flex-1">
           <span className="text-2xl shrink-0 mt-0.5" aria-hidden="true">{turno.icono}</span>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -311,17 +311,17 @@ export default function FichaModalidadProyecto({ postulacion, esEstudiante = fal
                 {turno.titulo}
               </h4>
             </div>
-            <p className="text-xs font-medium opacity-90 leading-relaxed break-normal">
+            <p className="text-xs font-medium opacity-90 leading-relaxed">
               {turno.subtitulo}
             </p>
           </div>
         </div>
 
-        <div className="w-full md:w-auto md:max-w-xs shrink-0 text-left md:text-right border-t md:border-t-0 pt-2.5 md:pt-0 border-current/15">
-          <span className="text-[11px] font-bold block opacity-75 uppercase tracking-wide">
+        <div className="w-full xl:w-auto xl:max-w-xs shrink-0 text-left xl:text-right border-t xl:border-t-0 pt-2.5 xl:pt-0 border-current/15">
+          <span className="text-[10px] font-black block opacity-75 uppercase tracking-wider">
             Próxima Acción:
           </span>
-          <span className="text-xs font-semibold block leading-snug break-normal">
+          <span className="text-xs font-semibold block leading-snug">
             {turno.accion}
           </span>
         </div>

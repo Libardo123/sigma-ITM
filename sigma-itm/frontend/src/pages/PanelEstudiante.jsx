@@ -1107,7 +1107,7 @@ export default function PanelEstudiante() {
             </p>
 
             {/* Cuadrícula interactiva de las 10 modalidades */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 mb-5">
               {MODALIDADES_OFICIALES.map((m) => {
                 const encontradaEnBD = modalidades.find(
                   (mod) => mod.nombre.toLowerCase().trim() === m.nombre.toLowerCase().trim()
@@ -1241,7 +1241,7 @@ export default function PanelEstudiante() {
                 )}
 
                 {/* Grilla de especificaciones reglamentarias */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 pt-1">
                   {infoModalidad.condicionesPrevias && (
                     <div className="bg-white/90 rounded-xl p-3 border border-blue-100/80 text-xs shadow-2xs">
                       <p className="font-bold text-amber-700 flex items-center gap-1.5 mb-1">
@@ -1387,7 +1387,7 @@ export default function PanelEstudiante() {
               documentosIniciales.map((doc, index) => (
                 <div
                   key={doc.id}
-                  className={`grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/70 p-4 rounded-xl border border-slate-200 ${
+                  className={`grid grid-cols-1 lg:grid-cols-2 gap-4 bg-slate-50/70 p-4 rounded-xl border border-slate-200 ${
                     index > 0 ? "mt-3" : ""
                   }`}
                 >
@@ -2017,7 +2017,7 @@ export default function PanelEstudiante() {
                       className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/60 transition-colors flex flex-col gap-3"
                     >
                       {/* Cabecera del Documento: Información y Acciones Principales */}
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-2.5 border-b border-slate-200/60">
+                      <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-3 pb-2.5 border-b border-slate-200/60">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2.5 flex-wrap">
                             <span className="text-lg shrink-0">📄</span>
@@ -2120,7 +2120,7 @@ export default function PanelEstudiante() {
                         </div>
 
                         {/* Acciones del Documento: Previsualizar, Descargar, Reemplazar y Eliminar */}
-                        <div className="flex items-center gap-1.5 shrink-0 self-start">
+                        <div className="flex flex-wrap items-center gap-1.5 shrink-0 pt-2 xl:pt-0 border-t border-slate-200/60 xl:border-t-0">
                           <button
                             type="button"
                             onClick={() =>
@@ -2633,7 +2633,7 @@ export default function PanelEstudiante() {
                         Documentos radicados en este expediente:
                       </h5>
                       {procHist.documentos && procHist.documentos.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
                           {procHist.documentos.map((doc) => (
                             <div
                               key={doc.id}

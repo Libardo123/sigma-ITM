@@ -1233,8 +1233,8 @@ export default function PanelAprobacion() {
       {/* PESTAÑA 1 y COMITÉ: GESTIÓN DE PROCESOS ACTIVOS Y EN REVISIÓN */}
       {!cargando && !errorCarga && (pestanaActiva === "gestion" || pestanaActiva === "comite") && (
         <div className="space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
-            <div className="min-w-0">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="min-w-0 flex-1 w-full">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {pestanaActiva === "comite" 
                   ? "Proyectos radicados al Comité para evaluación final"
@@ -1249,9 +1249,9 @@ export default function PanelAprobacion() {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full xl:w-auto">
               {/* Buscador Rápido por Cédula, Estudiante o Título */}
-              <div className="relative w-full sm:w-64 md:w-72 lg:w-80">
+              <div className="relative w-full sm:w-72 lg:w-80">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">
                   🔍
                 </span>
@@ -1721,16 +1721,16 @@ export default function PanelAprobacion() {
                   <span>📎</span> Documentos del Estudiante
                 </h4>
                 {p.documentos && p.documentos.length > 0 ? (
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <ul className="grid grid-cols-1 xl:grid-cols-2 gap-3">
                     {p.documentos.map((doc) => (
                       <li
                         key={doc.id}
-                        className="flex flex-col p-3 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-colors"
+                        className="flex flex-col p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition-colors"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="min-w-0 pr-2">
+                        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/60 xl:border-b-0">
+                          <div className="min-w-0 flex-1">
                             <p
-                              className="text-xs font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate flex items-center gap-1"
+                              className="text-xs font-bold text-slate-800 hover:text-itm-purple transition-colors cursor-pointer truncate flex items-center gap-1.5"
                               title={`Haz clic para previsualizar: ${doc.nombre}`}
                               onClick={() =>
                                 setDocumentoAVisualizar({
@@ -1745,15 +1745,15 @@ export default function PanelAprobacion() {
                               <span className="truncate">{doc.nombre}</span>
                             </p>
                             {doc.descripcion && (
-                              <p className="text-[11px] text-slate-600 truncate italic">
+                              <p className="text-[11px] text-slate-600 truncate italic mt-0.5">
                                 {doc.descripcion}
                               </p>
                             )}
-                            <p className="text-[11px] text-slate-500 font-medium">
-                              <strong>Radicación inicial (v1):</strong> {formatearFecha(doc.subido_en)}
+                            <p className="text-[11px] text-slate-500 font-medium mt-1 leading-normal">
+                              <strong className="text-slate-600">Radicación inicial (v1):</strong> {formatearFecha(doc.subido_en)}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1.5 shrink-0 self-center">
+                          <div className="flex flex-wrap items-center gap-2 shrink-0 pt-1 xl:pt-0">
                             <button
                               type="button"
                               onClick={() =>
@@ -2047,7 +2047,7 @@ export default function PanelAprobacion() {
                         </div>
                       )}
 
-                      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+                      <div className="flex flex-col xl:flex-row gap-3 items-stretch xl:items-center">
                         {!(esAsesor && p.estado === "SUSTENTACION") && (
                           <input
                             type="text"
@@ -2071,7 +2071,7 @@ export default function PanelAprobacion() {
                         )}
 
 
-                        <div className="flex flex-wrap gap-2.5 items-center justify-center">
+                        <div className="flex flex-wrap gap-2.5 items-center justify-start xl:justify-end">
                           {/* Botón Devolver para Corrección — siempre visible para quien puede gestionar */}
                           <button
                             type="button"
@@ -2324,7 +2324,7 @@ export default function PanelAprobacion() {
               <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2.5">
                 Catálogo de Modalidades ITM — Filtra o consulta su descripción:
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
                 {MODALIDADES_OFICIALES.map((m) => {
                   const conteo = procesos.filter(
                     (p) => p.modalidad_nombre === m.nombre
@@ -2455,7 +2455,7 @@ export default function PanelAprobacion() {
                 )}
 
                 {/* Grilla institucional con requisitos y documentos para el evaluador */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1 text-xs">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5 pt-1 text-xs">
                   {modalidadSeleccionadaInfo.condicionesPrevias && (
                     <div className="bg-white/90 p-2.5 rounded-xl border border-blue-100/80">
                       <span className="font-bold text-amber-700 block mb-0.5">📊 Condiciones Previas y Créditos:</span>
