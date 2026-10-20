@@ -1018,12 +1018,12 @@ export default function PanelAprobacion() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 mt-6">
+    <div className="w-full space-y-6 mt-2 sm:mt-4">
       {/* Encabezado contextual según el rol */}
-      <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
+      <div className="bg-gradient-to-r from-slate-900 via-itm-blue-dark to-slate-900 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
+        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-5 sm:gap-6">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="bg-white/10 text-blue-200 border border-white/20 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
                 {esAsesor
                   ? "Panel del Docente Asesor"
@@ -1031,14 +1031,14 @@ export default function PanelAprobacion() {
                   ? "Comité de Trabajos de Grado"
                   : "Administración Institucional"}
               </span>
-              <span className="text-xs text-blue-200">
+              <span className="text-xs text-blue-200 font-medium">
                 • {usuario?.first_name || usuario?.username}
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-tight">
               Panel de Control de Procesos
             </h2>
-            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-2xl leading-relaxed">
               {esAsesor
                 ? "Supervisa los proyectos asignados a tu asesoría académica, revisa entregables, emite retroalimentación y gestiona la aprobación de etapas."
                 : esComite
@@ -1047,31 +1047,31 @@ export default function PanelAprobacion() {
             </p>
           </div>
 
-          {/* Métricas rápidas */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
-              <p className="text-2xl font-black text-white">{totalProcesos}</p>
-              <p className="text-[11px] font-semibold text-blue-200 uppercase tracking-wide">
+          {/* Métricas rápidas: en split-screen y tablet se colocan abajo en 4 columnas holgadas sin superponerse */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 w-full xl:w-auto shrink-0">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-white/10 text-center flex flex-col items-center justify-center min-w-0 shadow-xs">
+              <p className="text-xl sm:text-2xl font-black text-white">{totalProcesos}</p>
+              <p className="text-[10px] sm:text-[11px] font-bold text-blue-200 uppercase tracking-wide leading-tight mt-0.5 text-center break-words">
                 {esAsesor ? "Mis Asesorías" : "Total Trámites"}
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
-              <p className="text-2xl font-black text-amber-300">{enProceso}</p>
-              <p className="text-[11px] font-semibold text-blue-200 uppercase tracking-wide">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-white/10 text-center flex flex-col items-center justify-center min-w-0 shadow-xs">
+              <p className="text-xl sm:text-2xl font-black text-amber-300">{enProceso}</p>
+              <p className="text-[10px] sm:text-[11px] font-bold text-blue-200 uppercase tracking-wide leading-tight mt-0.5 text-center break-words">
                 En Proceso
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
-              <p className="text-2xl font-black text-red-300">{requierenCorreccion}</p>
-              <p className="text-[11px] font-semibold text-blue-200 uppercase tracking-wide">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-white/10 text-center flex flex-col items-center justify-center min-w-0 shadow-xs">
+              <p className="text-xl sm:text-2xl font-black text-red-300">{requierenCorreccion}</p>
+              <p className="text-[10px] sm:text-[11px] font-bold text-blue-200 uppercase tracking-wide leading-tight mt-0.5 text-center break-words">
                 Corrección
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
-              <p className="text-2xl font-black text-emerald-300">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-2.5 sm:p-3 border border-white/10 text-center flex flex-col items-center justify-center min-w-0 shadow-xs">
+              <p className="text-xl sm:text-2xl font-black text-emerald-300">
                 {esAsesor ? finalizados : sinAsesor}
               </p>
-              <p className="text-[11px] font-semibold text-blue-200 uppercase tracking-wide">
+              <p className="text-[10px] sm:text-[11px] font-bold text-blue-200 uppercase tracking-wide leading-tight mt-0.5 text-center break-words">
                 {esAsesor ? "Finalizados" : "Sin Asesor"}
               </p>
             </div>
@@ -1079,44 +1079,44 @@ export default function PanelAprobacion() {
         </div>
       </div>
 
-      {/* Pestañas de navegación: Procesos Activos vs Historial Completo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-row border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1.5">
+      {/* Pestañas de navegación: distribución simétrica y texto legible en split-screen y móvil */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1.5">
         <button
           onClick={() => setPestanaActiva("gestion")}
-          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
+          className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 text-center leading-snug ${
             pestanaActiva === "gestion"
               ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
               : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
           }`}
         >
           <span>📋</span>
-          <span className="truncate">
+          <span>
             Gestión de Procesos ({procesos.filter((p) => !["FINALIZADO", "RECHAZADO", "REVISION_COMITE"].includes(p.estado)).length})
           </span>
         </button>
         <button
           onClick={() => setPestanaActiva("comite")}
-          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
+          className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 text-center leading-snug ${
             pestanaActiva === "comite"
               ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
               : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
           }`}
         >
           <span>🏛️</span>
-          <span className="truncate">
+          <span>
             Revisión Comité ({procesos.filter((p) => p.estado === "REVISION_COMITE" || p.estado === "FINALIZADO").length})
           </span>
         </button>
         <button
           onClick={() => setPestanaActiva("historial")}
-          className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
+          className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 text-center leading-snug ${
             pestanaActiva === "historial"
               ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
               : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
           }`}
         >
           <span>📜</span>
-          <span className="truncate">Historial y Trazabilidad</span>
+          <span>Historial y Trazabilidad</span>
         </button>
         {(usuario?.rol === "ADMIN" || usuario?.rol === "ADMINISTRADOR") && (
           <button
@@ -1124,16 +1124,16 @@ export default function PanelAprobacion() {
               setPestanaActiva("usuarios");
               cargarSolicitudesUsuarios();
             }}
-            className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 text-center leading-snug ${
               pestanaActiva === "usuarios"
                 ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
                 : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
             }`}
           >
             <span>👥</span>
-            <span className="truncate">Solicitudes de Usuarios</span>
+            <span>Solicitudes de Usuarios</span>
             {solicitudesUsuarios.length > 0 && (
-              <span className="bg-amber-500 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-bold ml-1 animate-pulse">
+              <span className="bg-amber-500 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold ml-1 animate-pulse">
                 {solicitudesUsuarios.length}
               </span>
             )}
@@ -1233,9 +1233,9 @@ export default function PanelAprobacion() {
       {/* PESTAÑA 1 y COMITÉ: GESTIÓN DE PROCESOS ACTIVOS Y EN REVISIÓN */}
       {!cargando && !errorCarga && (pestanaActiva === "gestion" || pestanaActiva === "comite") && (
         <div className="space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {pestanaActiva === "comite" 
                   ? "Proyectos radicados al Comité para evaluación final"
                   : esAsesor
@@ -1243,15 +1243,15 @@ export default function PanelAprobacion() {
                   : "Trámites activos radicados en plataforma"}
               </p>
               {busquedaGeneral && (
-                <p className="text-[11px] font-semibold text-itm-purple mt-0.5 truncate">
+                <p className="text-[11px] font-semibold text-itm-purple mt-0.5">
                   Filtrando por búsqueda: "{busquedaGeneral}"
                 </p>
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
               {/* Buscador Rápido por Cédula, Estudiante o Título */}
-              <div className="relative w-full sm:flex-1 lg:w-80">
+              <div className="relative w-full sm:w-64 md:w-72 lg:w-80">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">
                   🔍
                 </span>
@@ -1259,7 +1259,7 @@ export default function PanelAprobacion() {
                   type="text"
                   value={busquedaGeneral}
                   onChange={(e) => setBusquedaGeneral(e.target.value)}
-                  placeholder="Buscar por Cédula, estudiante o propuesta..."
+                  placeholder="Buscar por cédula, nombre o título..."
                   className="w-full pl-9 pr-8 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-itm-purple focus:bg-white transition-all shadow-inner"
                 />
                 {busquedaGeneral && (
@@ -1275,7 +1275,7 @@ export default function PanelAprobacion() {
               </div>
 
               {/* Filtro por Estado */}
-              <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <label
                   htmlFor="filtro-estado"
                   className="text-xs sm:text-sm font-bold text-itm-blue shrink-0"
@@ -1284,7 +1284,7 @@ export default function PanelAprobacion() {
                 </label>
                 <select
                   id="filtro-estado"
-                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all flex-1 sm:flex-initial"
+                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all w-full sm:w-auto"
                   value={filtroEstado}
                   onChange={(e) => setFiltroEstado(e.target.value)}
                   aria-label="Filtrar procesos por estado"
