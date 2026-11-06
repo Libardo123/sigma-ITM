@@ -12,10 +12,13 @@ from __future__ import annotations
 
 import logging
 
+from django.db import connection
 from django.db.models import Count, Q
 from django.http import HttpResponse
+from django.utils.dateparse import parse_date
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -40,6 +43,7 @@ from .permissions import (
 )
 from rest_framework.exceptions import PermissionDenied
 from .serializers import (
+    DocumentoRepositorioSerializer,
     DocumentoSerializer,
     HistorialEstadoSerializer,
     ModalidadSerializer,
@@ -51,9 +55,31 @@ from .serializers import (
     UsuarioSerializer,
 )
 from .pdf_utils import generar_certificado_finalizacion
+from .db import quitar_acentos
 from .validadores_modalidad import obtener_validador
 
 logger = logging.getLogger(__name__)
+
+
+class PostulacionPagination(PageNumberPagination):
+    """Paginación del listado de postulaciones.
+
+    Mantiene el estándar de 20 registros por página, pero permite que vistas
+    de consulta (Historial y Trazabilidad) soliciten un lote mayor mediante
+    ``?page_size=N`` sin alterar la paginación del resto de la API.
+    """
+
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 500
+
+
+class PanelPagination(PageNumberPagination):
+    """Paginación de listados compactos del panel (repositorio, etc.)."""
+
+    page_size = 20
+    page_size_query_param = "page_size"
+    max_page_size = 100
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -244,7 +270,39 @@ class PostulacionViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = PostulacionSerializer
+    pagination_class = PostulacionPagination
     permission_classes = [IsAuthenticated]
+
+    # Campos sobre los que actúa la búsqueda del panel. Cada palabra escrita
+    # debe aparecer en alguno de ellos (orden de palabras libre).
+    CAMPOS_BUSQUEDA = (
+        "estudiante__cedula",
+        "estudiante__first_name",
+        "estudiante__last_name",
+        "estudiante__username",
+        "titulo_proyecto",
+        "modalidad__nombre",
+        "asesor__first_name",
+        "asesor__last_name",
+    )
+
+    def _filtrar_por_busqueda(self, qs, busqueda: str):
+        """Filtra por palabras y sin tildes.
+
+        En SQLite se usa la transformación ``__sinacento`` (función UNACCENT
+        registrada en core/db.py) para que "gomez" encuentre "Gómez". En otros
+        motores se usa un ``icontains`` estándar.
+        """
+        usa_sin_acento = connection.vendor == "sqlite"
+        sufijo = "__sinacento__icontains" if usa_sin_acento else "__icontains"
+
+        for termino in [t for t in busqueda.split() if t]:
+            limpio = quitar_acentos(termino) if usa_sin_acento else termino
+            consulta = Q()
+            for campo in self.CAMPOS_BUSQUEDA:
+                consulta |= Q(**{f"{campo}{sufijo}": limpio})
+            qs = qs.filter(consulta)
+        return qs
 
     def get_queryset(self):
         """Filtra el queryset según el rol del usuario autenticado.
@@ -263,24 +321,77 @@ class PostulacionViewSet(viewsets.ModelViewSet):
 
         # Filtros opcionales por estado, modalidad y búsqueda (cédula, nombre o título) para Asesor, Comité y Admin
         estado_filtro = self.request.query_params.get("estado")
+        estados_filtro = self.request.query_params.get("estados")
         modalidad_filtro = self.request.query_params.get("modalidad")
+        asesor_filtro = self.request.query_params.get("asesor")
+        programa_filtro = self.request.query_params.get("programa")
         busqueda = self.request.query_params.get("search") or self.request.query_params.get("q")
+        # Navegación cronológica (equivalente a date_hierarchy del admin de Django).
+        anio_filtro = self.request.query_params.get("anio")
+        mes_filtro = self.request.query_params.get("mes")
+        creada_desde = self.request.query_params.get("creada_desde")
+        creada_hasta = self.request.query_params.get("creada_hasta")
 
         if estado_filtro:
             qs = qs.filter(estado=estado_filtro)
+        if estados_filtro:
+            # Lista de estados separada por comas, usada por las pestañas del
+            # panel para que la paginación sea coherente con cada pestaña.
+            estados = [e.strip() for e in estados_filtro.split(",") if e.strip()]
+            estados_validos = [e for e in estados if e in EstadoProceso.values]
+            qs = qs.filter(estado__in=estados_validos)
         if modalidad_filtro:
-            qs = qs.filter(modalidad_id=modalidad_filtro)
+            # Acepta el id (repositorio) o el nombre exacto (historial).
+            if str(modalidad_filtro).isdigit():
+                qs = qs.filter(modalidad_id=int(modalidad_filtro))
+            else:
+                qs = qs.filter(modalidad__nombre__iexact=modalidad_filtro.strip())
+        if asesor_filtro:
+            if asesor_filtro == "sin_asignar":
+                qs = qs.filter(asesor__isnull=True)
+            elif str(asesor_filtro).isdigit():
+                qs = qs.filter(asesor_id=int(asesor_filtro))
+        if programa_filtro:
+            qs = qs.filter(estudiante__programa_academico__iexact=programa_filtro.strip())
         if busqueda and busqueda.strip():
-            b = busqueda.strip()
-            qs = qs.filter(
-                Q(estudiante__cedula__icontains=b) |
-                Q(estudiante__first_name__icontains=b) |
-                Q(estudiante__last_name__icontains=b) |
-                Q(estudiante__username__icontains=b) |
-                Q(titulo_proyecto__icontains=b)
-            )
+            qs = self._filtrar_por_busqueda(qs, busqueda.strip())
+        if anio_filtro and str(anio_filtro).isdigit():
+            qs = qs.filter(creada_en__year=int(anio_filtro))
+        if mes_filtro and str(mes_filtro).isdigit() and 1 <= int(mes_filtro) <= 12:
+            qs = qs.filter(creada_en__month=int(mes_filtro))
+        fecha_desde = parse_date(creada_desde) if creada_desde else None
+        if fecha_desde:
+            qs = qs.filter(creada_en__date__gte=fecha_desde)
+        fecha_hasta = parse_date(creada_hasta) if creada_hasta else None
+        if fecha_hasta:
+            qs = qs.filter(creada_en__date__lte=fecha_hasta)
+
+        # Orden cronológico con lista blanca para evitar inyección en el ORDER BY.
+        orden = self.request.query_params.get("ordering")
+        ordenes_permitidos = {
+            "creada_en",
+            "-creada_en",
+            "actualizada_en",
+            "-actualizada_en",
+        }
+        if orden in ordenes_permitidos:
+            qs = qs.order_by(orden)
 
         return qs
+
+    @action(detail=False, methods=["get"], permission_classes=[EsAsesorOComite])
+    def programas(self, request) -> Response:
+        """Devuelve los programas académicos distintos presentes en las
+        postulaciones visibles para el usuario, para alimentar el filtro del panel."""
+        base = self.get_queryset()
+        programas = (
+            base.exclude(estudiante__programa_academico__isnull=True)
+            .exclude(estudiante__programa_academico="")
+            .values_list("estudiante__programa_academico", flat=True)
+            .distinct()
+            .order_by("estudiante__programa_academico")
+        )
+        return Response(list(programas))
 
     def perform_create(self, serializer) -> None:
         """El estudiante solo puede postular por sí mismo.
@@ -811,18 +922,57 @@ class DocumentoViewSet(viewsets.ModelViewSet):
     """
 
     serializer_class = DocumentoSerializer
+    pagination_class = PanelPagination
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         usuario: Usuario = self.request.user  # type: ignore
-        qs = Documento.objects.select_related("postulacion")
+        qs = Documento.objects.select_related(
+            "postulacion",
+            "postulacion__estudiante",
+            "postulacion__modalidad",
+        )
 
         if usuario.es_estudiante:
-            return qs.filter(postulacion__estudiante=usuario)
-        if usuario.es_asesor:
-            return qs.filter(postulacion__asesor=usuario)
+            qs = qs.filter(postulacion__estudiante=usuario)
+        elif usuario.es_asesor:
+            qs = qs.filter(postulacion__asesor=usuario)
 
-        return qs
+        # Filtros opcionales para el Repositorio Documental del Administrador.
+        busqueda = self.request.query_params.get("search") or self.request.query_params.get("q")
+        modalidad_filtro = self.request.query_params.get("modalidad")
+        postulacion_filtro = self.request.query_params.get("postulacion")
+
+        if busqueda and busqueda.strip():
+            b = busqueda.strip()
+            qs = qs.filter(
+                Q(nombre__icontains=b) |
+                Q(descripcion__icontains=b) |
+                Q(postulacion__titulo_proyecto__icontains=b) |
+                Q(postulacion__estudiante__cedula__icontains=b) |
+                Q(postulacion__estudiante__first_name__icontains=b) |
+                Q(postulacion__estudiante__last_name__icontains=b) |
+                Q(postulacion__estudiante__username__icontains=b)
+            )
+        if modalidad_filtro:
+            if str(modalidad_filtro).isdigit():
+                qs = qs.filter(postulacion__modalidad_id=int(modalidad_filtro))
+            else:
+                qs = qs.filter(postulacion__modalidad__nombre__iexact=modalidad_filtro.strip())
+        if postulacion_filtro:
+            qs = qs.filter(postulacion_id=postulacion_filtro)
+
+        return qs.order_by("-subido_en")
+
+    def get_serializer_class(self):
+        """El listado general usa la vista aplanada del repositorio para
+        Administradores y Comité. Las operaciones de detalle/escritura y los
+        demás roles conservan DocumentoSerializer sin cambios.
+        """
+        usuario: Usuario = self.request.user  # type: ignore
+        if self.action == "list" and (usuario.es_admin or usuario.es_comite):
+            return DocumentoRepositorioSerializer
+        return DocumentoSerializer
 
     def perform_create(self, serializer):
         postulacion = serializer.validated_data.get("postulacion")
@@ -1046,5 +1196,9 @@ class AnaliticaView(viewsets.ViewSet):
             "por_modalidad": por_modalidad,
             "es_asesor": usuario.es_asesor,
             "total_procesos": qs.count(),
+            # Indicadores globales del panel: no dependen de filtros ni de la
+            # página consultada. Se acotan al rol (el asesor solo ve los suyos).
+            "requiere_correccion": qs.filter(requiere_correccion=True).count(),
+            "sin_asesor": qs.filter(asesor__isnull=True).count(),
         })
 

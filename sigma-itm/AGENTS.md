@@ -24,3 +24,12 @@ Este archivo define las reglas obligatorias de diseño, arquitectura y comportam
 ## 4. Documentación y Diagramas
 - La documentación maestra y los diagramas oficiales de arquitectura residen en `docs/FLUJO_Y_GRAFOS_PROCESO.md` y `docs/ESTANDARES_Y_PATRONES_ITM.md`.
 - Para regenerar diagramas en alta definición se ejecutan los scripts ubicados en `frontend/generate_vertical_graph.mjs` y `frontend/generate_light_diagrams.mjs`.
+
+## 5. Protocolo Obligatorio para Agentes (Toma de Decisiones y Construcción)
+Cualquier agente que participe en este proyecto debe cumplir estas 5 reglas sin excepción:
+1. **Freno de Mano Obligatorio:** ANTES de modificar o crear archivos, presenta el plan técnico detallado al usuario y DETENTE. No toques archivos hasta recibir confirmación explícita.
+2. **Prohibido Asumir o Inventar Lógica de Negocio:** Si un flujo, rol o regla de negocio no está en `docs/ESTANDARES_Y_PATRONES_ITM.md`, está TERMINANTEMENTE PROHIBIDO inventarlo. El agente debe formular una pregunta clara al usuario antes de proceder.
+3. **Autonomía de Asesor en Etapa 3:** Bajo ninguna circunstancia un avance o entregable de Etapa 3 puede desviarse a Coordinación, Comité o Administrador; solo el Docente Asesor asignado puede evaluarlo.
+4. **Stack Congelado:** Prohibido instalar paquetes, dependencias o cambiar librerías sin autorización expresa. Consulta siempre `ARQUITECTURA_RESUMIDA.md` para el stack y comandos oficiales.
+5. **Verificación con Salida Real de Consola:** Prohibido declarar una tarea como "lista" o "completada" sin ejecutar los tests (`pytest`, `npm test`, linter) y pegar la salida real de la terminal. Cero aprobaciones teóricas.
+

@@ -35,6 +35,13 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
     mockUsuario = { id: 2, username: "comite1", rol: "COMITE" };
   });
 
+  // Las tarjetas inician contraídas: se abre la primera para ver su detalle.
+  const expandirPrimeraTarjeta = () => {
+    fireEvent.click(
+      screen.getByRole("button", { name: /ver detalles y acciones/i })
+    );
+  };
+
   it("renderiza la lista de documentos con enlaces de descarga cuando existen archivos (Bloque 15)", async () => {
     api.get.mockResolvedValueOnce({
       data: [
@@ -72,6 +79,8 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
       expect(screen.getByText(/Juan Pérez/i)).toBeInTheDocument();
     });
 
+    expandirPrimeraTarjeta();
+
     expect(screen.getByText(/Documentos del Estudiante/i)).toBeInTheDocument();
     expect(screen.getByText(/Propuesta de Grado/i)).toBeInTheDocument();
     expect(screen.getByText(/Certificado de Paz y Salvo/i)).toBeInTheDocument();
@@ -108,6 +117,8 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
       expect(screen.getByText(/Ana Gómez/i)).toBeInTheDocument();
     });
 
+    expandirPrimeraTarjeta();
+
     expect(
       screen.getByText(/El estudiante aún no ha subido documentos/i)
     ).toBeInTheDocument();
@@ -137,6 +148,8 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
     await waitFor(() => {
       expect(screen.getByText(/Carlos Gómez/i)).toBeInTheDocument();
     });
+
+    expandirPrimeraTarjeta();
 
     // Validar que se muestre el aviso claro de espera
     expect(
@@ -183,6 +196,8 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
       expect(screen.getByText(/Laura Medina/i)).toBeInTheDocument();
     });
 
+    expandirPrimeraTarjeta();
+
     // Se debe mostrar el mensaje de solo lectura indicando que corresponde al Comité
     expect(
       screen.getByText(/Modo solo lectura: La gestión de esta etapa corresponde al Comité de Trabajos de Grado/i)
@@ -225,6 +240,8 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
       expect(screen.getByText(/Diana Ruiz/i)).toBeInTheDocument();
     });
 
+    expandirPrimeraTarjeta();
+
     // El asesor asignado SÍ debe ver los botones de acción
     expect(
       screen.getByRole("button", { name: /pedir corrección/i })
@@ -237,22 +254,40 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
   it("permite navegar a la pestaña de 'Historial y Trazabilidad de Proyectos' y consultar proyectos", async () => {
     mockUsuario = { id: 2, username: "comite1", rol: "COMITE" };
 
-    api.get.mockResolvedValueOnce({
-      data: [
-        {
-          id: "proc-hist-1",
-          estudiante: 1,
-          estudiante_nombre: "Mateo Carvajal",
-          modalidad_nombre: "Semillero de Investigación",
-          titulo_proyecto: "Algoritmos Genéticos en Robótica",
-          estado: "EN_PROCESO",
-          estado_display: "En Proceso",
-          asesor_nombre: "Prof. Alberto Restrepo",
-          transiciones_disponibles: [],
-          requiere_correccion: false,
-          documentos: [],
-        },
-      ],
+    const procesoHistorial = {
+      id: "proc-hist-1",
+      estudiante: 1,
+      estudiante_nombre: "Mateo Carvajal",
+      modalidad_nombre: "Semillero de Investigación",
+      titulo_proyecto: "Algoritmos Genéticos en Robótica",
+      estado: "EN_PROCESO",
+      estado_display: "En Proceso",
+      asesor_nombre: "Prof. Alberto Restrepo",
+      transiciones_disponibles: [],
+      requiere_correccion: false,
+      documentos: [],
+    };
+
+    // El panel consulta varios endpoints: se responde según la URL.
+    api.get.mockImplementation((url) => {
+      if (url === "/analitica/") {
+        return Promise.resolve({
+          data: {
+            por_estado: [{ estado: "EN_PROCESO", total: 1 }],
+            por_modalidad: [
+              { modalidad__nombre: "Semillero de Investigación", total: 1 },
+            ],
+            total_procesos: 1,
+            requiere_correccion: 0,
+            sin_asesor: 0,
+            es_asesor: false,
+          },
+        });
+      }
+      if (url === "/postulaciones/") {
+        return Promise.resolve({ data: [procesoHistorial] });
+      }
+      return Promise.resolve({ data: [] });
     });
 
     render(<PanelAprobacion />);
@@ -263,7 +298,7 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
 
     // Pestañas visibles
     const tabHistorial = screen.getByRole("button", {
-      name: /historial y trazabilidad de proyectos/i,
+      name: /historial y trazabilidad/i,
     });
     expect(tabHistorial).toBeInTheDocument();
 
@@ -277,7 +312,9 @@ describe("PanelAprobacion — visualización y RBAC por etapa", () => {
     expect(
       screen.getByPlaceholderText(/buscar por estudiante, proyecto, asesor/i)
     ).toBeInTheDocument();
-    expect(screen.getByText(/Algoritmos Genéticos en Robótica/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Algoritmos Genéticos en Robótica/i)
+    ).toBeInTheDocument();
   });
 });
 

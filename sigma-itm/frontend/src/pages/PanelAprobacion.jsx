@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../api/client";
 import EstadoBadge from "../components/EstadoBadge";
 import FichaModalidadProyecto from "../components/FichaModalidadProyecto";
-import ModalVisorDocumento, { forzarDescargaArchivo } from "../components/ModalVisorDocumento";
 import HistorialVersionesDocumento from "../components/HistorialVersionesDocumento";
+import ModalVisorDocumento, { forzarDescargaArchivo } from "../components/ModalVisorDocumento";
 import { useAuth } from "../context/AuthContext";
 
 import { MODALIDADES_OFICIALES } from "../constants/modalidades";
@@ -28,6 +28,24 @@ const ETIQUETAS_ESTADO_ACTIVAS = {
   SUSTENTACION: "Sustentación",
   REVISION_COMITE: "Revisión Comité",
 };
+
+// Estados que alimentan cada pestaña. Se envían al backend para que la
+// paginación (20 por página) sea coherente con la pestaña activa y no se
+// mezclen trámites de otras etapas en una misma página.
+const ESTADOS_TAB_GESTION = [
+  "POSTULACION",
+  "REVISION_DOCUMENTAL",
+  "APROBACION",
+  "EN_PROCESO",
+  "SUSTENTACION",
+];
+const ESTADOS_TAB_COMITE = ["REVISION_COMITE", "FINALIZADO"];
+// Tamaños de página según la densidad visual de cada listado:
+// las tarjetas de gestión son muy altas (documentos, botones e historial),
+// por eso muestran 5; las listas compactas muestran 10.
+const TAMANO_PAGINA_PROCESOS = 5;
+const TAMANO_PAGINA_HISTORIAL = 10;
+const TAMANO_PAGINA_REPOSITORIO = 10;
 
 function etiquetaBotonTransicion(estadoDestino) {
   const etiquetas = {
@@ -159,12 +177,43 @@ function mensajeSoloLectura(postulacion, usuario) {
 export default function PanelAprobacion() {
   const { usuario } = useAuth();
   const [procesos, setProcesos] = useState([]);
+  // Paginación del listado de gestión/comité (20 por página en el backend).
+  const [paginaProcesos, setPaginaProcesos] = useState(1);
+  const [metaProcesos, setMetaProcesos] = useState({
+    siguiente: null,
+    anterior: null,
+    total: 0,
+  });
+  // Indicadores globales del panel (GET /api/analitica/). No dependen de los
+  // filtros ni de la página visible: representan el panorama total del rol.
+  const [metricasGlobales, setMetricasGlobales] = useState(null);
+  // Datos propios de la pestaña Historial (todos los estados del rol).
+  const [historialProcesos, setHistorialProcesos] = useState([]);
+  const [cargandoHistorialLista, setCargandoHistorialLista] = useState(false);
+  const [paginaHistorial, setPaginaHistorial] = useState(1);
+  const [metaHistorial, setMetaHistorial] = useState({
+    siguiente: null,
+    anterior: null,
+    total: 0,
+  });
   const [filtroEstado, setFiltroEstado] = useState("");
+  // Filtros avanzados del panel (equivalentes al list_filter del admin)
+  const [filtroAsesor, setFiltroAsesor] = useState("");
+  const [filtroPrograma, setFiltroPrograma] = useState("");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
+  const [programasDisponibles, setProgramasDisponibles] = useState([]);
   const [observaciones, setObservaciones] = useState({});
   const [mensaje, setMensaje] = useState("");
   const [mensajeExito, setMensajeExito] = useState("");
   const [errorCarga, setErrorCarga] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [actualizando, setActualizando] = useState(false);
+  // Evita desmontar la barra de filtros (y cerrar el calendario) en cada cambio.
+  const cargaInicialHecha = useRef(false);
+  const paginaProcesosRef = useRef(1);
+  const pestanaAnteriorRef = useRef("gestion");
+  const primeraBusquedaRef = useRef(true);
   const [documentoAVisualizar, setDocumentoAVisualizar] = useState(null);
 
   // Estados inline por tarjeta para feedback inmediato al usuario
@@ -184,11 +233,12 @@ export default function PanelAprobacion() {
   const [historialData, setHistorialData] = useState({});
   const [cargandoHistorial, setCargandoHistorial] = useState({});
 
-  // Acordeón para expandir/colapsar tarjeta de proyecto (expandido por defecto para visualización directa)
-  const [proyectosColapsados, setProyectosColapsados] = useState({});
+  // Acordeón de cada proyecto: contraído por defecto. El usuario lo abre
+  // explícitamente con "Ver Detalles y Acciones".
+  const [proyectosExpandidos, setProyectosExpandidos] = useState({});
 
   const toggleExpandirProyecto = (id) => {
-    setProyectosColapsados((prev) => ({ ...prev, [id]: !prev[id] }));
+    setProyectosExpandidos((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   // Filtros de búsqueda para la pestaña de Historial y Gestión General
@@ -265,6 +315,19 @@ export default function PanelAprobacion() {
     esEdicion: false,
     enviando: false,
     error: "",
+  });
+
+  // Repositorio Documental Institucional (todos los archivos radicados con su peso)
+  const [repositorio, setRepositorio] = useState([]);
+  const [cargandoRepositorio, setCargandoRepositorio] = useState(false);
+  const [errorRepositorio, setErrorRepositorio] = useState("");
+  const [paginaRepositorio, setPaginaRepositorio] = useState(1);
+  const [busquedaRepositorio, setBusquedaRepositorio] = useState("");
+  const [filtroModalidadRepositorio, setFiltroModalidadRepositorio] = useState("");
+  const [metaRepositorio, setMetaRepositorio] = useState({
+    siguiente: null,
+    anterior: null,
+    total: 0,
   });
 
   // Estado de Solicitudes de Registro (Aprobación por Admin)
@@ -364,23 +427,95 @@ export default function PanelAprobacion() {
     }
   };
 
-  const cargar = async (silencioso = false) => {
-    if (!silencioso) setCargando(true);
+  const estadosDePestana = (pestana) => {
+    if (pestana === "gestion") return ESTADOS_TAB_GESTION.join(",");
+    if (pestana === "comite") return ESTADOS_TAB_COMITE.join(",");
+    return "";
+  };
+
+  const cargarMetricas = async () => {
+    try {
+      const { data } = await api.get("/analitica/");
+      setMetricasGlobales(data);
+    } catch {
+      // Silencioso: se conservan las métricas previas.
+    }
+  };
+
+  const cargar = async (silencioso = false, pagina = paginaProcesosRef.current, pestana = pestanaActiva) => {
+    const estados = estadosDePestana(pestana);
+    // Las pestañas sin listado de trámites (historial, usuarios, repositorio)
+    // no disparan esta carga.
+    if (!estados) return;
+    if (silencioso) setActualizando(true);
+    else setCargando(true);
     setErrorCarga("");
     try {
-      const { data } = await api.get("/postulaciones/", {
-        params: filtroEstado ? { estado: filtroEstado } : {},
+      // Filtros enviados al backend para que la paginación (20 por página)
+      // no oculte trámites al filtrar por asesor, programa o fecha.
+      const params = { page: pagina, estados };
+      if (filtroEstado) params.estado = filtroEstado;
+      if (filtroAsesor) params.asesor = filtroAsesor;
+      if (filtroPrograma) params.programa = filtroPrograma;
+      if (fechaDesde) params.creada_desde = fechaDesde;
+      if (fechaHasta) params.creada_hasta = fechaHasta;
+      // La búsqueda se resuelve en el servidor (sin tildes y por palabras),
+      // para que siga funcionando con la paginación.
+      if (busquedaGeneral.trim()) params.search = busquedaGeneral.trim();
+      params.page_size = TAMANO_PAGINA_PROCESOS;
+
+      const { data } = await api.get("/postulaciones/", { params });
+      const lista = data.results ?? data;
+      setProcesos(lista);
+      setPaginaProcesos(pagina);
+      paginaProcesosRef.current = pagina;
+      setMetaProcesos({
+        siguiente: data.next || null,
+        anterior: data.previous || null,
+        total: data.count ?? lista.length,
       });
-      setProcesos(data.results ?? data);
+      if (!silencioso) {
+        // Aprobar, asignar o solicitar correcciones cambia los indicadores
+        // globales: se refrescan junto con la lista (después de ella, para no
+        // alterar el orden de las consultas iniciales).
+        cargarMetricas();
+      }
     } catch {
       if (!silencioso) {
         setErrorCarga(
           "No se pudo cargar la lista de procesos. Verifica tu conexión e intenta de nuevo."
         );
         setProcesos([]);
+        setMetaProcesos({ siguiente: null, anterior: null, total: 0 });
       }
     } finally {
-      if (!silencioso) setCargando(false);
+      if (silencioso) setActualizando(false);
+      else setCargando(false);
+    }
+  };
+
+  const cargarHistorial = async (pagina = 1) => {
+    setCargandoHistorialLista(true);
+    try {
+      // Historial con búsqueda y modalidad en el servidor: la paginación es
+      // real y no depende de cuántos registros existan.
+      const params = { page: pagina, page_size: TAMANO_PAGINA_HISTORIAL };
+      if (busquedaHistorial.trim()) params.search = busquedaHistorial.trim();
+      if (filtroModalidadHistorial) params.modalidad = filtroModalidadHistorial;
+      const { data } = await api.get("/postulaciones/", { params });
+      const lista = data.results ?? data;
+      setHistorialProcesos(lista);
+      setPaginaHistorial(pagina);
+      setMetaHistorial({
+        siguiente: data.next || null,
+        anterior: data.previous || null,
+        total: data.count ?? lista.length,
+      });
+    } catch {
+      setHistorialProcesos([]);
+      setMetaHistorial({ siguiente: null, anterior: null, total: 0 });
+    } finally {
+      setCargandoHistorialLista(false);
     }
   };
 
@@ -399,21 +534,112 @@ export default function PanelAprobacion() {
     }
   };
 
+  const cargarProgramas = async () => {
+    const esComiteOAdmin =
+      usuario?.rol === "COMITE" ||
+      usuario?.rol === "ADMIN" ||
+      usuario?.rol === "ADMINISTRADOR";
+    if (!esComiteOAdmin) return;
+    try {
+      const { data } = await api.get("/postulaciones/programas/");
+      setProgramasDisponibles(data.results ?? data);
+    } catch {
+      // Silencioso
+    }
+  };
+
+  const cargarRepositorio = async (pagina = 1) => {
+    const esAdminActual = usuario?.rol === "ADMIN" || usuario?.rol === "ADMINISTRADOR";
+    if (!esAdminActual) return;
+    setCargandoRepositorio(true);
+    setErrorRepositorio("");
+    try {
+      const params = { page: pagina, page_size: TAMANO_PAGINA_REPOSITORIO };
+      if (busquedaRepositorio.trim()) params.search = busquedaRepositorio.trim();
+      if (filtroModalidadRepositorio) params.modalidad = filtroModalidadRepositorio;
+      const { data } = await api.get("/documentos/", { params });
+      const lista = data.results ?? data;
+      setRepositorio(lista);
+      setPaginaRepositorio(pagina);
+      setMetaRepositorio({
+        siguiente: data.next || null,
+        anterior: data.previous || null,
+        total: data.count ?? lista.length,
+      });
+    } catch {
+      setErrorRepositorio("No se pudo cargar el repositorio documental.");
+      setRepositorio([]);
+    } finally {
+      setCargandoRepositorio(false);
+    }
+  };
+
+  // Recarga del repositorio con un pequeño retardo mientras se escribe.
   useEffect(() => {
-    cargar();
+    if (pestanaActiva !== "repositorio") return;
+    const temporizador = setTimeout(() => {
+      cargarRepositorio(1);
+    }, 350);
+    return () => clearTimeout(temporizador);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busquedaRepositorio, filtroModalidadRepositorio]);
+
+  // La búsqueda rápida se resuelve sobre un lote amplio de la pestaña para
+  // que siga siendo insensible a tildes y al orden de las palabras. Se espera
+  // un instante para no consultar en cada tecla.
+  useEffect(() => {
+    if (primeraBusquedaRef.current) {
+      primeraBusquedaRef.current = false;
+      return;
+    }
+    const temporizador = setTimeout(() => {
+      cargar(true, 1, pestanaActiva);
+    }, 350);
+    return () => clearTimeout(temporizador);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busquedaGeneral]);
+
+  // Carga del Historial y Trazabilidad. Se recarga al entrar y cuando cambia
+  // la búsqueda o la modalidad (con un pequeño retardo al escribir).
+  useEffect(() => {
+    if (pestanaActiva !== "historial") return;
+    const temporizador = setTimeout(() => {
+      cargarHistorial(1);
+    }, 350);
+    return () => clearTimeout(temporizador);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pestanaActiva, busquedaHistorial, filtroModalidadHistorial]);
+
+  const estadosTabs = estadosDePestana(pestanaActiva);
+
+  useEffect(() => {
+    // La primera carga muestra el spinner grande; los cambios de filtro se
+    // recargan en segundo plano para NO desmontar la tarjeta de filtros
+    // (si se desmonta, el navegador cierra el calendario de las fechas).
+    // Los cambios de pestaña sí muestran el spinner: la lista cambia por
+    // completo (p. ej. de Gestión a Revisión Comité).
+    const cambioDePestana = pestanaAnteriorRef.current !== pestanaActiva;
+    pestanaAnteriorRef.current = pestanaActiva;
+    if (!estadosTabs) return;
+
+    const esCargaInicial = !cargaInicialHecha.current;
+    cargaInicialHecha.current = true;
+    cargar(!esCargaInicial && !cambioDePestana, 1, pestanaActiva);
 
     const handleFocus = () => {
-      cargar(true);
+      cargar(true, paginaProcesosRef.current, pestanaActiva);
     };
     window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [filtroEstado]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtroEstado, filtroAsesor, filtroPrograma, fechaDesde, fechaHasta, estadosTabs]);
 
   useEffect(() => {
     cargarAsesores();
+    cargarProgramas();
     cargarSolicitudesUsuarios();
   }, [usuario]);
 
@@ -988,29 +1214,95 @@ export default function PanelAprobacion() {
   const esComite = usuario?.rol === "COMITE";
   const esAdmin = usuario?.rol === "ADMIN" || usuario?.rol === "ADMINISTRADOR";
 
-  const totalProcesos = procesos.length;
-  const enProceso = procesos.filter((p) => p.estado === "EN_PROCESO").length;
-  const requierenCorreccion = procesos.filter((p) => p.requiere_correccion).length;
-  const finalizados = procesos.filter(
-    (p) => p.estado === "FINALIZADO" || p.estado === "REVISION_COMITE" || p.estado === "SUSTENTACION"
-  ).length;
-  const sinAsesor = procesos.filter((p) => !p.asesor).length;
+  // Indicadores globales del rol (no dependen de filtros ni de la página).
+  // Si /api/analitica/ aún no respondió, se usa la lista cargada como respaldo.
+  const conteosGlobales = (metricasGlobales?.por_estado || []).reduce((acc, item) => {
+    acc[item.estado] = item.total;
+    return acc;
+  }, {});
+  const hayMetricasGlobales = Boolean(metricasGlobales);
 
-  // Filtrado de proyectos para la pestaña de Historial (insensible a mayúsculas, minúsculas y tildes)
-  const proyectosFiltradosHistorial = procesos.filter((p) => {
-    if (filtroModalidadHistorial && p.modalidad_nombre !== filtroModalidadHistorial) {
-      return false;
-    }
-    if (!busquedaHistorial || !busquedaHistorial.trim()) {
-      return true;
-    }
-    const palabras = normalizarTextoBusqueda(busquedaHistorial).split(/\s+/).filter(Boolean);
-    const textoObjetivo = normalizarTextoBusqueda(
-      `${p.estudiante_cedula} ${p.estudiante_nombre} ${p.estudiante_email} ${p.titulo_proyecto} ${p.modalidad_nombre} ${p.asesor_nombre}`
+  const totalProcesos = hayMetricasGlobales
+    ? metricasGlobales.total_procesos
+    : procesos.length;
+  const enProceso = hayMetricasGlobales
+    ? conteosGlobales.EN_PROCESO || 0
+    : procesos.filter((p) => p.estado === "EN_PROCESO").length;
+  const requierenCorreccion = hayMetricasGlobales
+    ? metricasGlobales.requiere_correccion || 0
+    : procesos.filter((p) => p.requiere_correccion).length;
+  const finalizados = hayMetricasGlobales
+    ? (conteosGlobales.FINALIZADO || 0) +
+      (conteosGlobales.REVISION_COMITE || 0) +
+      (conteosGlobales.SUSTENTACION || 0)
+    : procesos.filter(
+        (p) =>
+          p.estado === "FINALIZADO" ||
+          p.estado === "REVISION_COMITE" ||
+          p.estado === "SUSTENTACION"
+      ).length;
+  const sinAsesor = hayMetricasGlobales
+    ? metricasGlobales.sin_asesor || 0
+    : procesos.filter((p) => !p.asesor).length;
+
+  // Conteos globales de las pestañas: estables ante filtros y paginación.
+  const conteoGestionGlobal = hayMetricasGlobales
+    ? Math.max(
+        0,
+        totalProcesos -
+          (conteosGlobales.FINALIZADO || 0) -
+          (conteosGlobales.RECHAZADO || 0) -
+          (conteosGlobales.REVISION_COMITE || 0)
+      )
+    : procesos.filter(
+        (p) => !["FINALIZADO", "RECHAZADO", "REVISION_COMITE"].includes(p.estado)
+      ).length;
+  const conteoComiteGlobal = hayMetricasGlobales
+    ? (conteosGlobales.REVISION_COMITE || 0) + (conteosGlobales.FINALIZADO || 0)
+    : procesos.filter(
+        (p) => p.estado === "REVISION_COMITE" || p.estado === "FINALIZADO"
+      ).length;
+
+  // Conteo por modalidad para el catálogo del Historial. Sale de /analitica/
+  // para que no dependa de la página visible.
+  const conteoModalidadGlobal = (nombre) => {
+    const fila = (metricasGlobales?.por_modalidad || []).find(
+      (m) => m.modalidad__nombre === nombre
     );
+    return fila?.total ?? 0;
+  };
 
-    return palabras.every((palabra) => textoObjetivo.includes(palabra));
-  });
+  // Paginación del listado de gestión/comité (5 tarjetas por página).
+  const totalPaginasProcesos = Math.max(
+    1,
+    Math.ceil((metaProcesos.total || 0) / TAMANO_PAGINA_PROCESOS)
+  );
+
+  // El backend ya aplica estado y búsqueda; la lista llega paginada.
+  const procesosVisibles = procesos;
+
+  // Rango visible, p. ej. "1–5 de 23".
+  const inicioProcesosVisibles =
+    metaProcesos.total === 0 ? 0 : (paginaProcesos - 1) * TAMANO_PAGINA_PROCESOS + 1;
+  const finProcesosVisibles = Math.min(
+    paginaProcesos * TAMANO_PAGINA_PROCESOS,
+    metaProcesos.total
+  );
+
+  // Paginación del Historial (10 filas compactas por página).
+  const totalPaginasHistorial = Math.max(
+    1,
+    Math.ceil((metaHistorial.total || 0) / TAMANO_PAGINA_HISTORIAL)
+  );
+  const inicioHistorialVisible =
+    metaHistorial.total === 0 ? 0 : (paginaHistorial - 1) * TAMANO_PAGINA_HISTORIAL + 1;
+  const finHistorialVisible = Math.min(
+    paginaHistorial * TAMANO_PAGINA_HISTORIAL,
+    metaHistorial.total
+  );
+
+  // El Historial ya llega filtrado y paginado desde el servidor.
+  const proyectosFiltradosHistorial = historialProcesos;
 
   // Modalidad actualmente seleccionada para ver su ficha
   const modalidadSeleccionadaInfo = MODALIDADES_OFICIALES.find(
@@ -1044,6 +1336,10 @@ export default function PanelAprobacion() {
                 : esComite
                 ? "Revisión documental, aprobación de postulaciones, asignación de docentes asesores y control de sustentaciones."
                 : "Control global del ciclo de vida de modalidades de grado del ITM."}
+            </p>
+            <p className="text-[11px] text-blue-200/90 mt-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+              Indicadores globales de tu rol · no cambian con los filtros ni con la página
             </p>
           </div>
 
@@ -1080,7 +1376,7 @@ export default function PanelAprobacion() {
       </div>
 
       {/* Pestañas de navegación: distribución simétrica y texto legible en split-screen y móvil */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1.5">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${esAdmin ? "xl:grid-cols-5" : "xl:grid-cols-4"} border-b border-slate-200 bg-white rounded-2xl p-1.5 shadow-sm gap-1.5`}>
         <button
           onClick={() => setPestanaActiva("gestion")}
           className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 text-center leading-snug ${
@@ -1091,7 +1387,7 @@ export default function PanelAprobacion() {
         >
           <span>📋</span>
           <span>
-            Gestión de Procesos ({procesos.filter((p) => !["FINALIZADO", "RECHAZADO", "REVISION_COMITE"].includes(p.estado)).length})
+            Gestión de Procesos ({conteoGestionGlobal})
           </span>
         </button>
         <button
@@ -1104,7 +1400,7 @@ export default function PanelAprobacion() {
         >
           <span>🏛️</span>
           <span>
-            Revisión Comité ({procesos.filter((p) => p.estado === "REVISION_COMITE" || p.estado === "FINALIZADO").length})
+            Revisión Comité ({conteoComiteGlobal})
           </span>
         </button>
         <button
@@ -1137,6 +1433,22 @@ export default function PanelAprobacion() {
                 {solicitudesUsuarios.length}
               </span>
             )}
+          </button>
+        )}
+        {esAdmin && (
+          <button
+            onClick={() => {
+              setPestanaActiva("repositorio");
+              cargarRepositorio(1);
+            }}
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 text-center leading-snug ${
+              pestanaActiva === "repositorio"
+                ? "bg-itm-blue text-white shadow-md shadow-itm-blue/20"
+                : "text-slate-600 hover:text-itm-blue hover:bg-slate-50"
+            }`}
+          >
+            <span>📁</span>
+            <span>Repositorio Documental</span>
           </button>
         )}
       </div>
@@ -1216,7 +1528,7 @@ export default function PanelAprobacion() {
         >
           <p className="text-red-700 font-bold text-lg mb-4">{errorCarga}</p>
           <button
-            onClick={cargar}
+            onClick={() => cargar()}
             className="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2.5 rounded-lg shadow transition-colors"
           >
             Reintentar
@@ -1241,6 +1553,12 @@ export default function PanelAprobacion() {
                   : esAsesor
                   ? "Proyectos donde ejerces como asesor titular"
                   : "Trámites activos radicados en plataforma"}
+              </p>
+              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                Mostrando {inicioProcesosVisibles}–{finProcesosVisibles} de {metaProcesos.total} trámite(s)
+                {totalPaginasProcesos > 1
+                  ? ` · Página ${paginaProcesos} de ${totalPaginasProcesos}`
+                  : ""}
               </p>
               {busquedaGeneral && (
                 <p className="text-[11px] font-semibold text-itm-purple mt-0.5">
@@ -1300,30 +1618,127 @@ export default function PanelAprobacion() {
             </div>
           </div>
 
+          {/* Filtros avanzados: Asesor, Programa y navegación cronológica */}
+          <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 flex-wrap">
+                <span>Filtros avanzados y navegación cronológica</span>
+                {actualizando && (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-itm-purple normal-case">
+                    <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-itm-purple"></span>
+                    Actualizando…
+                  </span>
+                )}
+              </p>
+              {(filtroAsesor || filtroPrograma || fechaDesde || fechaHasta) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFiltroAsesor("");
+                    setFiltroPrograma("");
+                    setFechaDesde("");
+                    setFechaHasta("");
+                  }}
+                  className="self-start sm:self-auto px-3 py-1.5 rounded-lg text-[11px] font-bold text-itm-purple bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors"
+                >
+                  ✕ Limpiar filtros avanzados
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
+              {/* Asesor asignado */}
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="filtro-asesor"
+                  className="text-[11px] font-bold text-itm-blue uppercase tracking-wide"
+                >
+                  Asesor
+                </label>
+                <select
+                  id="filtro-asesor"
+                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                  value={filtroAsesor}
+                  onChange={(e) => setFiltroAsesor(e.target.value)}
+                  aria-label="Filtrar procesos por asesor"
+                >
+                  <option value="">Todos los asesores</option>
+                  {asesores.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {`${a.first_name || ""} ${a.last_name || ""}`.trim() || a.username}
+                    </option>
+                  ))}
+                  <option value="sin_asignar">Sin asesor asignado</option>
+                </select>
+              </div>
+
+              {/* Programa académico */}
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="filtro-programa"
+                  className="text-[11px] font-bold text-itm-blue uppercase tracking-wide"
+                >
+                  Programa académico
+                </label>
+                <select
+                  id="filtro-programa"
+                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                  value={filtroPrograma}
+                  onChange={(e) => setFiltroPrograma(e.target.value)}
+                  aria-label="Filtrar procesos por programa académico"
+                >
+                  <option value="">Todos los programas</option>
+                  {programasDisponibles.map((programa) => (
+                    <option key={programa} value={programa}>
+                      {programa}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Fecha inicial */}
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="filtro-fecha-desde"
+                  className="text-[11px] font-bold text-itm-blue uppercase tracking-wide"
+                >
+                  Fecha inicial
+                </label>
+                <input
+                  type="date"
+                  id="filtro-fecha-desde"
+                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                  value={fechaDesde}
+                  max={fechaHasta || undefined}
+                  onChange={(e) => setFechaDesde(e.target.value)}
+                  aria-label="Filtrar procesos desde la fecha inicial"
+                  title="Mostrar trámites radicados desde este día"
+                />
+              </div>
+
+              {/* Fecha final */}
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="filtro-fecha-hasta"
+                  className="text-[11px] font-bold text-itm-blue uppercase tracking-wide"
+                >
+                  Fecha final
+                </label>
+                <input
+                  type="date"
+                  id="filtro-fecha-hasta"
+                  className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                  value={fechaHasta}
+                  min={fechaDesde || undefined}
+                  onChange={(e) => setFechaHasta(e.target.value)}
+                  aria-label="Filtrar procesos hasta la fecha final"
+                  title="Mostrar trámites radicados hasta este día"
+                />
+              </div>
+            </div>
+          </div>
+
           {(() => {
-            const procesosFiltrados = procesos.filter((p) => {
-              if (pestanaActiva === "gestion") {
-                if (["FINALIZADO", "RECHAZADO", "REVISION_COMITE"].includes(p.estado)) return false;
-              } else if (pestanaActiva === "comite") {
-                if (!["REVISION_COMITE", "FINALIZADO"].includes(p.estado)) return false;
-              }
-              if (filtroEstado && p.estado !== filtroEstado) return false;
-
-              if (busquedaGeneral && busquedaGeneral.trim()) {
-                const palabras = normalizarTextoBusqueda(busquedaGeneral).split(/\s+/).filter(Boolean);
-                const textoObjetivo = normalizarTextoBusqueda(
-                  `${p.estudiante_cedula} ${p.estudiante_nombre} ${p.estudiante_email} ${p.titulo_proyecto} ${p.modalidad_nombre} ${p.asesor_nombre}`
-                );
-
-                // Cada palabra ingresada (nombre, apellido, cédula o modalidad) debe coincidir
-                const coincide = palabras.every((palabra) => textoObjetivo.includes(palabra));
-                if (!coincide) return false;
-              }
-
-              return true;
-            });
-
-            if (procesosFiltrados.length === 0) {
+            if (procesosVisibles.length === 0) {
               return (
                 <div className="glass-panel rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
                   <span className="text-4xl block mb-3">🔍</span>
@@ -1353,7 +1768,7 @@ export default function PanelAprobacion() {
             }
 
 
-            return procesosFiltrados.map((p) => (
+            return procesosVisibles.map((p) => (
               <article
                 key={p.id}
                 className="glass-panel rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 border-t-4 border-transparent hover:border-itm-purple"
@@ -1482,16 +1897,16 @@ export default function PanelAprobacion() {
                       onClick={() => toggleExpandirProyecto(p.id)}
                       className="text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 transition-colors flex items-center gap-1.5 shadow-xs bg-white text-slate-700 hover:bg-slate-50 hover:text-itm-purple"
                     >
-                      <span>{!proyectosColapsados[p.id] ? "🔼" : "🔽"}</span>
+                      <span>{proyectosExpandidos[p.id] ? "🔼" : "🔽"}</span>
                       <span>
-                        {!proyectosColapsados[p.id] ? "Ocultar Detalles" : "Ver Detalles y Acciones"}
+                        {proyectosExpandidos[p.id] ? "Ocultar Detalles" : "Ver Detalles y Acciones"}
                       </span>
                     </button>
                   </div>
                 </div>
 
-                {/* Contenido Expandible del Proyecto (Visible por defecto) */}
-                {!proyectosColapsados[p.id] && (
+                {/* Contenido Expandible del Proyecto (contraído por defecto) */}
+                {proyectosExpandidos[p.id] && (
                   <div className="mt-4 pt-4 border-t border-slate-100 animate-fadeIn">
 
               {/* Directriz del Comité/Admin para el Asesor si existe */}
@@ -1753,6 +2168,11 @@ export default function PanelAprobacion() {
                             <p className="text-[11px] text-slate-500 font-medium mt-1 leading-normal">
                               <strong className="text-slate-600">Radicación inicial (v1):</strong> {formatearFecha(doc.subido_en)}
                             </p>
+                            {doc.tamano_legible && (
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5 leading-normal">
+                                <strong className="text-slate-600">Peso:</strong> {doc.tamano_legible}
+                              </p>
+                            )}
                           </div>
                           <div className="flex flex-wrap items-center gap-2 shrink-0 pt-1 xl:pt-0">
                             <button
@@ -2273,6 +2693,32 @@ export default function PanelAprobacion() {
             </article>
           ));
         })()}
+
+          {procesosVisibles.length > 0 && totalPaginasProcesos > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs text-slate-500 font-medium">
+                Página {paginaProcesos} de {totalPaginasProcesos} • {metaProcesos.total} trámite(s) en esta vista
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!metaProcesos.anterior || actualizando}
+                  onClick={() => cargar(true, paginaProcesos - 1)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  disabled={!metaProcesos.siguiente || actualizando}
+                  onClick={() => cargar(true, paginaProcesos + 1)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
       </div>
       )}
 
@@ -2287,10 +2733,20 @@ export default function PanelAprobacion() {
                 </h3>
                 <p className="text-xs text-slate-500">
                   Consulta de todas las modalidades de grado del ITM, estudiantes, asesores y bitácora de auditoría.
+                  {cargandoHistorialLista && (
+                    <span className="inline-flex items-center gap-1.5 ml-2 text-itm-purple font-semibold">
+                      <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-itm-purple"></span>
+                      Cargando…
+                    </span>
+                  )}
+                </p>
+                <p className="text-[11px] font-semibold text-slate-500 mt-0.5">
+                  Mostrando {inicioHistorialVisible}–{finHistorialVisible} de {metaHistorial.total} proyecto(s)
+                  {totalPaginasHistorial > 1
+                    ? ` · Página ${paginaHistorial} de ${totalPaginasHistorial}`
+                    : ""}
                 </p>
               </div>
-
-              {/* Buscador en tiempo real y Filtro por TODAS las modalidades oficiales */}
               <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                 <input
                   type="text"
@@ -2307,9 +2763,7 @@ export default function PanelAprobacion() {
                 >
                   <option value="">Todas las modalidades (10)</option>
                   {MODALIDADES_OFICIALES.map((m) => {
-                    const conteo = procesos.filter(
-                      (p) => p.modalidad_nombre === m.nombre
-                    ).length;
+                    const conteo = conteoModalidadGlobal(m.nombre);
                     return (
                       <option key={m.nombre} value={m.nombre}>
                         {m.icono} {m.nombre} ({conteo})
@@ -2327,9 +2781,7 @@ export default function PanelAprobacion() {
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2">
                 {MODALIDADES_OFICIALES.map((m) => {
-                  const conteo = procesos.filter(
-                    (p) => p.modalidad_nombre === m.nombre
-                  ).length;
+                  const conteo = conteoModalidadGlobal(m.nombre);
                   const estaSeleccionada = filtroModalidadHistorial === m.nombre;
                   return (
                     <button
@@ -2661,6 +3113,32 @@ export default function PanelAprobacion() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {proyectosFiltradosHistorial.length > 0 && totalPaginasHistorial > 1 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs text-slate-500 font-medium">
+                Página {paginaHistorial} de {totalPaginasHistorial} • {metaHistorial.total} proyecto(s) en total
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!metaHistorial.anterior || cargandoHistorialLista}
+                  onClick={() => cargarHistorial(paginaHistorial - 1)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  disabled={!metaHistorial.siguiente || cargandoHistorialLista}
+                  onClick={() => cargarHistorial(paginaHistorial + 1)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Siguiente →
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -4259,6 +4737,212 @@ export default function PanelAprobacion() {
           </div>
         );
       })()}
+
+      {/* PESTAÑA: REPOSITORIO DOCUMENTAL INSTITUCIONAL (SOLO ADMINISTRADOR) */}
+      {esAdmin && pestanaActiva === "repositorio" && (
+        <div className="space-y-6">
+          <div className="glass-panel p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="bg-itm-blue/10 text-itm-blue font-black text-xs uppercase px-3 py-1 rounded-full border border-itm-blue/20">
+                  Repositorio Documental
+                </span>
+                <span className="text-xs text-slate-500 font-bold">
+                  {metaRepositorio.total} archivo(s) en el expediente institucional
+                </span>
+              </div>
+              <h2 className="text-2xl font-black text-slate-900">
+                Todos los documentos radicados
+              </h2>
+              <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                Consulta el peso real de cada archivo en KB/MB, su versión vigente y descárgalo directamente sin navegar trámite por trámite.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto">
+              <div className="relative w-full sm:w-72">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">
+                  🔍
+                </span>
+                <input
+                  type="text"
+                  value={busquedaRepositorio}
+                  onChange={(e) => setBusquedaRepositorio(e.target.value)}
+                  placeholder="Buscar por estudiante, cédula o documento..."
+                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-itm-purple focus:bg-white transition-all shadow-inner"
+                  aria-label="Buscar documentos en el repositorio"
+                />
+                {busquedaRepositorio && (
+                  <button
+                    type="button"
+                    onClick={() => setBusquedaRepositorio("")}
+                    title="Limpiar búsqueda"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <select
+                value={filtroModalidadRepositorio}
+                onChange={(e) => setFiltroModalidadRepositorio(e.target.value)}
+                className="border-2 border-slate-200 rounded-xl px-2.5 py-2 text-xs sm:text-sm font-medium focus:outline-none focus:border-itm-purple bg-white shadow-xs transition-all"
+                aria-label="Filtrar documentos por modalidad"
+              >
+                <option value="">Todas las modalidades</option>
+                {MODALIDADES_OFICIALES.map((m) => (
+                  <option key={m.nombre} value={m.nombre}>
+                    {m.icono} {m.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {errorRepositorio && (
+            <div role="alert" className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm flex items-start gap-3">
+              <span className="text-xl">⚠️</span>
+              <div className="flex-1">
+                <p className="text-red-700 font-semibold">{errorRepositorio}</p>
+                <button
+                  type="button"
+                  onClick={() => cargarRepositorio(paginaRepositorio)}
+                  className="mt-2 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors"
+                >
+                  Reintentar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {cargandoRepositorio ? (
+            <div className="flex justify-center items-center py-16">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-itm-purple"></div>
+            </div>
+          ) : repositorio.length === 0 && !errorRepositorio ? (
+            <div className="glass-panel rounded-2xl p-12 text-center border-2 border-dashed border-slate-200">
+              <span className="text-4xl block mb-3">📁</span>
+              <p className="text-slate-800 font-bold text-base mb-1">
+                No hay documentos que coincidan con la consulta
+              </p>
+              <p className="text-slate-500 text-xs max-w-md mx-auto">
+                Prueba cambiando la modalidad o limpiando el término de búsqueda.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+              {repositorio.map((doc) => (
+                <article
+                  key={doc.id}
+                  className="glass-panel rounded-2xl p-4 border-t-4 border-transparent hover:border-itm-purple transition-all duration-300"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">
+                        {doc.modalidad_nombre} • v{doc.version_actual || 1}
+                      </p>
+                      <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5 mt-0.5">
+                        <span>📄</span>
+                        <span className="truncate" title={doc.nombre}>{doc.nombre}</span>
+                      </h3>
+                      <p className="text-[11px] text-slate-600 mt-1 truncate">
+                        👤 {doc.estudiante_nombre}
+                        {doc.estudiante_cedula && doc.estudiante_cedula !== "—"
+                          ? ` • CC ${doc.estudiante_cedula}`
+                          : ""}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate">
+                        🎓 {doc.estudiante_programa}
+                      </p>
+                      {doc.titulo_proyecto && (
+                        <p className="text-[11px] text-slate-500 italic truncate">
+                          "{doc.titulo_proyecto}"
+                        </p>
+                      )}
+                      {doc.descripcion && (
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          {doc.descripcion}
+                        </p>
+                      )}
+                    </div>
+                    <span
+                      className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-mono text-[11px] font-bold border border-emerald-200 shrink-0"
+                      title="Peso del archivo vigente"
+                    >
+                      {doc.tamano_legible || "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100">
+                    <span className="text-[11px] text-slate-500 font-medium">
+                      🗓️ {formatearFecha(doc.subido_en)}
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDocumentoAVisualizar({
+                            nombre: doc.nombre,
+                            archivo: doc.archivo,
+                            descripcion: doc.descripcion,
+                            fecha: formatearFecha(doc.subido_en),
+                          })
+                        }
+                        className="inline-flex items-center gap-1 text-xs font-bold text-itm-purple hover:bg-itm-purple hover:text-white bg-purple-50 px-2.5 py-1.5 rounded-lg border border-purple-200 transition-all shadow-2xs cursor-pointer"
+                        title="Previsualizar documento en pantalla sin descargar"
+                      >
+                        <span>👁️</span>
+                        <span>Ver</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          forzarDescargaArchivo(
+                            obtenerUrlDocumento(doc.archivo),
+                            doc.nombre
+                          )
+                        }
+                        className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-itm-blue hover:bg-slate-100 bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 transition-all shadow-2xs cursor-pointer"
+                        title="Descargar archivo a tu dispositivo"
+                      >
+                        <span>⬇️</span>
+                        <span>Descargar</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+
+          {!cargandoRepositorio && repositorio.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+              <span className="text-xs text-slate-500 font-medium">
+                Página {paginaRepositorio} • {metaRepositorio.total} documento(s) en total
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={!metaRepositorio.anterior}
+                  onClick={() => cargarRepositorio(paginaRepositorio - 1)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  ← Anterior
+                </button>
+                <button
+                  type="button"
+                  disabled={!metaRepositorio.siguiente}
+                  onClick={() => cargarRepositorio(paginaRepositorio + 1)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Modal de Previsualización y Descarga de Documentos */}
       <ModalVisorDocumento

@@ -9,6 +9,26 @@ from rest_framework import serializers
 from .models import Documento, HistorialEstado, Modalidad, Postulacion, Usuario, VersionDocumento
 
 
+def _obtener_tamano_archivo(archivo) -> int | None:
+    """Devuelve el tamaño en bytes del archivo, o None si no está disponible."""
+    try:
+        if archivo and archivo.size:
+            return archivo.size
+    except Exception:
+        return None
+    return None
+
+
+def _formatear_tamano(bytes_tamano: int | None) -> str | None:
+    """Convierte bytes a una etiqueta legible en KB o MB."""
+    if not bytes_tamano:
+        return None
+    kb = bytes_tamano / 1024
+    if kb < 1024:
+        return f"{kb:.1f} KB"
+    return f"{kb / 1024:.2f} MB"
+
+
 class UsuarioSerializer(serializers.ModelSerializer):
     semestre = serializers.SerializerMethodField()
 
@@ -98,6 +118,8 @@ class VersionDocumentoSerializer(serializers.ModelSerializer):
 
     archivo_url = serializers.SerializerMethodField()
     creado_por_nombre = serializers.SerializerMethodField()
+    tamano_bytes = serializers.SerializerMethodField()
+    tamano_legible = serializers.SerializerMethodField()
 
     class Meta:  # type: ignore
         model = VersionDocumento
@@ -111,8 +133,16 @@ class VersionDocumentoSerializer(serializers.ModelSerializer):
             "creado_en",
             "creado_por",
             "creado_por_nombre",
+            "tamano_bytes",
+            "tamano_legible",
         ]
         read_only_fields = ["id", "creado_en"]
+
+    def get_tamano_bytes(self, obj: VersionDocumento) -> int | None:
+        return _obtener_tamano_archivo(obj.archivo)
+
+    def get_tamano_legible(self, obj: VersionDocumento) -> str | None:
+        return _formatear_tamano(_obtener_tamano_archivo(obj.archivo))
 
     def get_archivo_url(self, obj: VersionDocumento) -> str | None:
         if obj.archivo:
@@ -151,6 +181,8 @@ class DocumentoSerializer(serializers.ModelSerializer):
     versiones = serializers.SerializerMethodField()
     version_actual = serializers.SerializerMethodField()
     total_versiones = serializers.SerializerMethodField()
+    tamano_bytes = serializers.SerializerMethodField()
+    tamano_legible = serializers.SerializerMethodField()
 
     class Meta:  # type: ignore
         model = Documento
@@ -164,6 +196,8 @@ class DocumentoSerializer(serializers.ModelSerializer):
             "versiones",
             "version_actual",
             "total_versiones",
+            "tamano_bytes",
+            "tamano_legible",
         ]
         read_only_fields = [
             "id",
@@ -171,7 +205,15 @@ class DocumentoSerializer(serializers.ModelSerializer):
             "versiones",
             "version_actual",
             "total_versiones",
+            "tamano_bytes",
+            "tamano_legible",
         ]
+
+    def get_tamano_bytes(self, obj: Documento) -> int | None:
+        return _obtener_tamano_archivo(obj.archivo)
+
+    def get_tamano_legible(self, obj: Documento) -> str | None:
+        return _formatear_tamano(_obtener_tamano_archivo(obj.archivo))
 
     def get_versiones(self, obj: Documento) -> list[dict]:
         versiones_qs = list(obj.versiones.all().order_by("-numero_version"))
@@ -246,6 +288,42 @@ class DocumentoSerializer(serializers.ModelSerializer):
             )
 
         return archivo
+
+
+class DocumentoRepositorioSerializer(DocumentoSerializer):
+    """Vista aplanada de un documento para el Repositorio Documental institucional.
+
+    Agrega los datos del estudiante, la modalidad y el proyecto para que el
+    Administrador pueda auditar todos los archivos sin navegar tarjeta por
+    tarjeta. Es de solo lectura y complementa (no reemplaza) a DocumentoSerializer.
+    """
+
+    estudiante_nombre = serializers.SerializerMethodField()
+    estudiante_cedula = serializers.SerializerMethodField()
+    estudiante_programa = serializers.SerializerMethodField()
+    modalidad_nombre = serializers.CharField(source="postulacion.modalidad.nombre", read_only=True)
+    titulo_proyecto = serializers.CharField(source="postulacion.titulo_proyecto", read_only=True)
+    estado_postulacion = serializers.CharField(source="postulacion.get_estado_display", read_only=True)
+
+    class Meta(DocumentoSerializer.Meta):  # type: ignore
+        fields = DocumentoSerializer.Meta.fields + [
+            "estudiante_nombre",
+            "estudiante_cedula",
+            "estudiante_programa",
+            "modalidad_nombre",
+            "titulo_proyecto",
+            "estado_postulacion",
+        ]
+
+    def get_estudiante_nombre(self, obj: Documento) -> str:
+        estudiante = obj.postulacion.estudiante
+        return estudiante.get_full_name() or estudiante.username
+
+    def get_estudiante_cedula(self, obj: Documento) -> str:
+        return obj.postulacion.estudiante.cedula or "—"
+
+    def get_estudiante_programa(self, obj: Documento) -> str:
+        return obj.postulacion.estudiante.programa_academico or "—"
 
 
 class HistorialEstadoSerializer(serializers.ModelSerializer):

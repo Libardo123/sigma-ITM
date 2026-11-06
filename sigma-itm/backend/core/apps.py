@@ -15,3 +15,8 @@ class CoreConfig(AppConfig):
     def ready(self) -> None:
         """Importa las señales para que Django las registre al arrancar."""
         import core.signals  # noqa: F401 — importación por efecto secundario
+
+        # Habilita la búsqueda sin tildes (UNACCENT) usada por los filtros.
+        from core.db import registrar_soporte_sin_acentos
+
+        registrar_soporte_sin_acentos()

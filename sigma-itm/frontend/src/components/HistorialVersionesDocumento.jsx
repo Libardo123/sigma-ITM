@@ -196,6 +196,14 @@ export default function HistorialVersionesDocumento({
                       <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] font-bold shrink-0">
                         {tipoArchivo}
                       </span>
+                      {v.tamano_legible && (
+                        <span
+                          className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-mono text-[10px] font-bold shrink-0 border border-emerald-200"
+                          title="Peso del archivo de esta versión"
+                        >
+                          {v.tamano_legible}
+                        </span>
+                      )}
                       <span className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
                         🗓️{" "}
                         {formatearFecha
