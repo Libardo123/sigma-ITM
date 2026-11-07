@@ -210,10 +210,12 @@ class ValidadorGenerico(ValidadorModalidad):
 # Registro de estrategias: nombre canónico de modalidad → clase validadora.
 # Los nombres DEBEN coincidir exactamente con los de MODALIDADES en seed_data.py.
 _REGISTRO_VALIDADORES: dict[str, type[ValidadorModalidad]] = {
-    "Trabajo de Grado":       ValidadorTrabajoDeGrado,
-    "Prácticas Profesionales": ValidadorPracticasProfesionales,
-    "Producto en Laboratorio": ValidadorProductoEnLaboratorio,
-    "Producto de Investigación": ValidadorProductoDeInvestigacion,
+    "Trabajo de Grado":          ValidadorTrabajoDeGrado,
+    "Proyecto de Grado":         ValidadorTrabajoDeGrado,
+    "Prácticas Profesionales":    ValidadorPracticasProfesionales,
+    "Producto en Laboratorio":    ValidadorProductoEnLaboratorio,
+    "Producto obtenido en talleres o laboratorios de docencia o investigación": ValidadorProductoEnLaboratorio,
+    "Producto de Investigación":  ValidadorProductoDeInvestigacion,
 }
 
 

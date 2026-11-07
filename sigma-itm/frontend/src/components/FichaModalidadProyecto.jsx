@@ -211,7 +211,38 @@ export default function FichaModalidadProyecto({ postulacion, esEstudiante = fal
               <span>{infoModalidad.icono}</span>
               <span>Guía Reglamentaria Oficial: {infoModalidad.nombre}</span>
             </span>
-            <span className="text-[10px] text-slate-500 font-normal">Normativa Facultad de Ingenierías ITM</span>
+            <span className="text-[10px] text-slate-500 font-normal">
+              {infoModalidad.normaOficial || "Normativa Facultad de Ingenierías ITM"}
+            </span>
+          </div>
+
+          {/* Badges de Reglas Institucionales */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {infoModalidad.exclusivoNivel === "TECNOLOGIA" && (
+              <span className="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                <span>⚠️</span> Exclusivo Programas de Tecnología
+              </span>
+            )}
+            {infoModalidad.exclusivoNivel === "INGENIERIA" && (
+              <span className="bg-purple-100 text-purple-900 border border-purple-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                <span>🎓</span> Exclusivo Nivel Profesional / Ingeniería
+              </span>
+            )}
+            {infoModalidad.creditosMinimos && (
+              <span className="bg-blue-100 text-blue-900 border border-blue-200 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                <span>📊</span> Mín. {infoModalidad.creditosMinimos} de créditos
+              </span>
+            )}
+            {infoModalidad.integrantesMax && (
+              <span className="bg-slate-100 text-slate-800 border border-slate-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                <span>👥</span> 1 a {infoModalidad.integrantesMax} estudiante(s)
+              </span>
+            )}
+            {infoModalidad.permiteEstudiantesNoActivos && (
+              <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                <span>✅</span> Permite estudiantes no activos / egresados
+              </span>
+            )}
           </div>
 
           <p className="text-slate-700 leading-relaxed font-normal">

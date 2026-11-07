@@ -1132,6 +1132,12 @@ export default function PanelEstudiante() {
                   >
                     <span className="text-2xl mb-1.5">{m.icono}</span>
                     <span className="font-bold leading-tight">{m.nombre}</span>
+                    {m.exclusivoNivel === "TECNOLOGIA" && (
+                      <span className={`text-[9px] font-bold block mt-1 ${estaSeleccionada ? "text-amber-200" : "text-amber-600"}`}>Solo Tecnología</span>
+                    )}
+                    {m.exclusivoNivel === "INGENIERIA" && (
+                      <span className={`text-[9px] font-bold block mt-1 ${estaSeleccionada ? "text-purple-200" : "text-purple-600"}`}>Solo Ingeniería</span>
+                    )}
                   </button>
                 );
               })}
@@ -1186,6 +1192,62 @@ export default function PanelEstudiante() {
                     </span>
                   )}
                 </div>
+
+                {/* Badges y Reglas Institucionales */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  {infoModalidad.normaOficial && (
+                    <span className="bg-slate-100 text-slate-700 border border-slate-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                      <span>📜</span> {infoModalidad.normaOficial}
+                    </span>
+                  )}
+                  {infoModalidad.exclusivoNivel === "TECNOLOGIA" && (
+                    <span className="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                      <span>⚠️</span> Exclusivo Programas de Tecnología (Res. 562 Art. 15)
+                    </span>
+                  )}
+                  {infoModalidad.exclusivoNivel === "INGENIERIA" && (
+                    <span className="bg-purple-100 text-purple-900 border border-purple-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                      <span>🎓</span> Exclusivo Nivel Profesional / Ingeniería (Res. 562 Art. 17)
+                    </span>
+                  )}
+                  {infoModalidad.creditosMinimos && (
+                    <span className="bg-blue-100 text-blue-900 border border-blue-200 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                      <span>📊</span> Mínimo {infoModalidad.creditosMinimos} de créditos
+                    </span>
+                  )}
+                  {infoModalidad.integrantesMax && (
+                    <span className="bg-slate-100 text-slate-800 border border-slate-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                      <span>👥</span> 1 a {infoModalidad.integrantesMax} estudiante(s)
+                    </span>
+                  )}
+                  {infoModalidad.permiteEstudiantesNoActivos && (
+                    <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold px-2.5 py-0.5 rounded-full text-[10px] flex items-center gap-1">
+                      <span>✅</span> Permite estudiantes no activos / egresados
+                    </span>
+                  )}
+                </div>
+
+                {(() => {
+                  const prog = (usuario?.programa_academico || "").toLowerCase();
+                  const esTec = prog.includes("tecnolog");
+                  const esIng = prog.includes("ingenier");
+                  const advertencia =
+                    infoModalidad.exclusivoNivel === "TECNOLOGIA" && esIng && !esTec
+                      ? "Atención: La modalidad 'Reconocimiento Laboral' es válida EXCLUSIVAMENTE para programas de nivel Tecnológico (Resolución 562 Art. 15). Según tu registro perteneces a un programa de Ingeniería."
+                      : infoModalidad.exclusivoNivel === "INGENIERIA" && esTec && !esIng
+                      ? "Atención: La modalidad 'Cursos de Posgrado' es válida EXCLUSIVAMENTE para el nivel Profesional / Ingeniería (Resolución 562 Art. 17). Según tu registro perteneces a un programa Tecnológico."
+                      : null;
+                  if (!advertencia) return null;
+                  return (
+                    <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 text-amber-950 text-xs flex items-start gap-2 shadow-xs">
+                      <span className="text-base shrink-0">⚠️</span>
+                      <div>
+                        <strong className="block font-bold">Aviso Reglamentario de Nivel Académico:</strong>
+                        <span>{advertencia}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <p className="text-xs text-slate-700 leading-relaxed font-normal">
                   {infoModalidad.queEs || infoModalidad.descripcion}
@@ -2143,7 +2205,7 @@ export default function PanelEstudiante() {
                             download
                             target="_blank"
                             rel="noopener noreferrer"
-                            aria-label={`Descargar versión vigente v${maxVer} de ${doc.nombre}`}
+                            aria-label={`Descargar o ver documento ${doc.nombre} v${maxVer}`}
                             title={`Descargar archivo de la versión vigente (v${maxVer})`}
                             onClick={(e) => {
                               e.preventDefault();
